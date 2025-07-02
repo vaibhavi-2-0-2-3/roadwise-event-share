@@ -26,7 +26,7 @@ export function RideChat({ rideId, driverId }: RideChatProps) {
         .from('messages')
         .select(`
           *,
-          profiles:sender_id (
+          sender_profile:profiles!messages_sender_id_fkey (
             id,
             name,
             image_url
@@ -117,7 +117,7 @@ export function RideChat({ rideId, driverId }: RideChatProps) {
                 : 'bg-gray-200 text-gray-900'
             }`}>
               {msg.sender_id !== user?.id && (
-                <p className="text-xs font-medium mb-1">{msg.profiles?.name}</p>
+                <p className="text-xs font-medium mb-1">{msg.sender_profile?.name}</p>
               )}
               <p className="text-sm">{msg.content}</p>
               <p className={`text-xs mt-1 ${

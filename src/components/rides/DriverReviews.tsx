@@ -26,7 +26,7 @@ export function DriverReviews({ driverId }: DriverReviewsProps) {
         .from('reviews')
         .select(`
           *,
-          profiles:reviewer_id (
+          reviewer_profile:profiles!reviews_reviewer_id_fkey (
             name,
             image_url
           )
@@ -207,7 +207,7 @@ export function DriverReviews({ driverId }: DriverReviewsProps) {
           reviews.map((review) => (
             <div key={review.id} className="border-b pb-4 last:border-b-0">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="font-medium text-sm">{review.profiles?.name}</span>
+                <span className="font-medium text-sm">{review.reviewer_profile?.name}</span>
                 <div className="flex space-x-1">
                   {renderStars(review.rating)}
                 </div>

@@ -25,7 +25,7 @@ export function EventChat({ eventId }: EventChatProps) {
         .from('messages')
         .select(`
           *,
-          profiles:sender_id (
+          sender_profile:profiles!messages_sender_id_fkey (
             id,
             name,
             image_url
@@ -108,21 +108,21 @@ export function EventChat({ eventId }: EventChatProps) {
         {messages?.map((msg) => (
           <div key={msg.id} className="flex items-start space-x-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              {msg.profiles?.image_url ? (
+              {msg.sender_profile?.image_url ? (
                 <img 
-                  src={msg.profiles.image_url} 
-                  alt={msg.profiles.name} 
+                  src={msg.sender_profile.image_url} 
+                  alt={msg.sender_profile.name} 
                   className="w-8 h-8 rounded-full"
                 />
               ) : (
                 <span className="text-sm font-medium text-blue-600">
-                  {msg.profiles?.name?.charAt(0) || '?'}
+                  {msg.sender_profile?.name?.charAt(0) || '?'}
                 </span>
               )}
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">{msg.profiles?.name}</span>
+                <span className="text-sm font-medium">{msg.sender_profile?.name}</span>
                 <span className="text-xs text-gray-500">
                   {new Date(msg.created_at!).toLocaleTimeString()}
                 </span>
