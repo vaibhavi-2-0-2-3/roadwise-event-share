@@ -4,7 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Users, MessageCircle, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar, MapPin, Users, MessageCircle, Plus, Clock, Car } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,28 +93,56 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
     setShowCreateRide(true);
   };
 
+  const getEventStatus = (eventDate: string) => {
+    const now = new Date();
+    const eventTime = new Date(eventDate);
+    const diffTime = eventTime.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return { label: 'Past Event', color: 'bg-gray-500' };
+    if (diffDays === 0) return { label: 'Today', color: 'bg-red-500' };
+    if (diffDays === 1) return { label: 'Tomorrow', color: 'bg-orange-500' };
+    if (diffDays <= 7) return { label: 'This Week', color: 'bg-blue-500' };
+    return { label: 'Upcoming', color: 'bg-green-500' };
+  };
+
+  const status = getEventStatus(event.event_date);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{event.title}</DialogTitle>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl font-bold mb-2">{event.title}</DialogTitle>
+                <Badge className={`${status.color} text-white mb-2`}>
+                  {status.label}
+                </Badge>
+              </div>
+            </div>
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="aspect-video relative overflow-hidden rounded-lg">
+            {/* Event Image */}
+            <div className="aspect-video relative overflow-hidden rounded-xl">
               <img
                 src={event.image_url || 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500'}
                 alt={event.title}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center text-gray-600">
-                <Calendar className="h-5 w-5 mr-3" />
+            {/* Event Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
                 <div>
-                  <p className="font-medium">
+                  <h4 className="font-semibold mb-1">Date & Time</h4>
+                  <p className="text-gray-600 dark:text-gray-400">
                     {new Date(event.event_date).toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
@@ -120,7 +150,7 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                       day: 'numeric'
                     })}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-sm text-gray-500">
                     {new Date(event.event_date).toLocaleTimeString('en-US', {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -128,36 +158,62 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                   </p>
                 </div>
               </div>
-              <div className="flex items-center text-gray-600">
-                <MapPin className="h-5 w-5 mr-3" />
-                <p>{event.location}</p>
+              
+              <div className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                  <MapPin className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1">Location</h4>
+                  <p className="text-gray-600 dark:text-gray-400">{event.location}</p>
+                </div>
               </div>
             </div>
 
-            <p className="text-gray-700">{event.description}</p>
+            {/* Description */}
+            {event.description && (
+              <div className="p-6 bg-white dark:bg-gray-900 rounded-lg border">
+                <h4 className="font-semibold mb-3">About This Event</h4>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{event.description}</p>
+              </div>
+            )}
 
+            {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
               {!isParticipant && (
-                <Button onClick={handleJoinEvent} variant="outline">
+                <Button onClick={handleJoinEvent} size="lg" className="flex-1 md:flex-none">
                   <Users className="h-4 w-4 mr-2" />
                   Join Event
                 </Button>
               )}
-              <Button onClick={handleOfferRide}>
+              <Button onClick={handleOfferRide} variant="outline" size="lg" className="flex-1 md:flex-none">
                 <Plus className="h-4 w-4 mr-2" />
                 Offer a Ride
               </Button>
             </div>
 
+            {/* Tabs */}
             <Tabs defaultValue="rides" className="w-full">
-              <TabsList>
-                <TabsTrigger value="rides">Available Rides</TabsTrigger>
-                <TabsTrigger value="chat">Event Chat</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="rides" className="flex items-center">
+                  <Car className="h-4 w-4 mr-2" />
+                  Available Rides ({rides?.length || 0})
+                </TabsTrigger>
+                <TabsTrigger value="chat" className="flex items-center">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Event Chat
+                </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="rides" className="space-y-4">
+              <TabsContent value="rides" className="space-y-4 mt-6">
                 {ridesLoading ? (
-                  <div>Loading rides...</div>
+                  <div className="grid gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+                      </div>
+                    ))}
+                  </div>
                 ) : rides && rides.length > 0 ? (
                   <div className="grid gap-4">
                     {rides.map((ride) => (
@@ -165,21 +221,42 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No rides available for this event yet.</p>
-                    <p className="text-sm">Be the first to offer a ride!</p>
+                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No rides available yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      Be the first to offer a ride to this amazing event!
+                    </p>
+                    <Button onClick={handleOfferRide}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Offer the First Ride
+                    </Button>
                   </div>
                 )}
               </TabsContent>
               
-              <TabsContent value="chat">
+              <TabsContent value="chat" className="mt-6">
                 {user && isParticipant ? (
-                  <EventChat eventId={event.id} />
+                  <div className="bg-white dark:bg-gray-900 rounded-lg border">
+                    <EventChat eventId={event.id} />
+                  </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Join the event to participate in the chat</p>
+                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <MessageCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Join the conversation</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {user ? 'Join this event to participate in the group chat' : 'Sign in and join this event to chat with other attendees'}
+                    </p>
+                    {!user ? (
+                      <Button onClick={() => setShowAuthDialog(true)}>
+                        Sign In to Join
+                      </Button>
+                    ) : (
+                      <Button onClick={handleJoinEvent}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Join Event
+                      </Button>
+                    )}
                   </div>
                 )}
               </TabsContent>
