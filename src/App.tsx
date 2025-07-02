@@ -9,7 +9,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
 import HomePage from "./pages/HomePage";
 import EventsPage from "./pages/EventsPage";
+import EventDetailsPage from "./pages/EventDetailsPage";
 import RidesPage from "./pages/RidesPage";
+import RideDetailsPage from "./pages/RideDetailsPage";
+import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 
@@ -27,7 +30,10 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:eventId" element={<EventDetailsPage />} />
                 <Route path="/rides" element={<RidesPage />} />
+                <Route path="/rides/:rideId" element={<RideDetailsPage />} />
+                <Route path="/profile/:profileId" element={<ProfilePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
