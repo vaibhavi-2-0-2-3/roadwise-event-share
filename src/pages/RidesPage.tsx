@@ -1,18 +1,22 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Calendar, Users, Plus, Clock, DollarSign } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Plus, Filter, MapPin, Clock, Car } from 'lucide-react';
+import { RideCard } from '@/components/rides/RideCard';
 import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRideStatusUpdater } from '@/hooks/useRideStatusUpdater';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 export default function RidesPage() {
+  useRideStatusUpdater(); // Auto-update ride statuses
+  
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateRide, setShowCreateRide] = useState(false);
@@ -28,7 +32,8 @@ export default function RidesPage() {
           profiles:driver_id (
             id,
             name,
-            image_url
+            image_url,
+            bio
           ),
           events (
             id,
@@ -36,13 +41,12 @@ export default function RidesPage() {
             location
           )
         `)
-        .eq('status', 'active')
         .order('departure_time', { ascending: true });
-      
+
       if (searchTerm) {
         query = query.or(`origin.ilike.%${searchTerm}%,destination.ilike.%${searchTerm}%`);
       }
-      
+
       const { data, error } = await query;
       if (error) throw error;
       return data;
@@ -57,175 +61,206 @@ export default function RidesPage() {
     setShowCreateRide(true);
   };
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Available Rides</h1>
-            <p className="text-gray-600 dark:text-gray-400">Find your perfect ride or offer one to fellow travelers</p>
+  const activeRides = rides?.filter(ride => 
+    ride.status === 'active' && 
+    new Date(ride.departure_time) > new Date()
+  ) || [];
+
+  const upcomingRides = rides?.filter(ride => 
+    ride.status === 'active' && 
+    new Date(ride.departure_time) <= new Date()
+  ) || [];
+
+  const completedRides = rides?.filter(ride => ride.status === 'completed') || [];
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-12 bg-gray-200 dark:bg-gray-800 rounded-xl w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-80 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+            ))}
           </div>
-          <Button onClick={handleCreateRide} className="md:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Offer a Ride
-          </Button>
-        </div>
-        
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search by origin or destination..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
         </div>
       </div>
+    );
+  }
 
-      {/* Rides List */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-24"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-16"></div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4].map((j) => (
-                    <div key={j} className="h-4 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                Find Your Ride
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Connect with drivers heading to your destination
+              </p>
+            </div>
+            
+            <Button 
+              onClick={handleCreateRide}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Offer a Ride
+            </Button>
+          </div>
         </div>
-      ) : rides && rides.length > 0 ? (
-        <div className="space-y-4">
-          {rides.map((ride) => (
-            <Link key={ride.id} to={`/rides/${ride.id}`}>
-              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group shadow-md border-0">
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex-1 space-y-4">
-                      {/* Driver Info */}
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                          {ride.profiles?.image_url ? (
-                            <img 
-                              src={ride.profiles.image_url} 
-                              alt={ride.profiles.name} 
-                              className="w-12 h-12 rounded-full object-cover"
-                            />
-                          ) : (
-                            ride.profiles?.name?.charAt(0) || 'D'
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{ride.profiles?.name}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Driver</p>
-                        </div>
-                        {ride.available_seats === 0 && (
-                          <Badge variant="secondary" className="ml-auto">
-                            Fully Booked
-                          </Badge>
-                        )}
-                      </div>
 
-                      {/* Route & Event Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <MapPin className="h-4 w-4 mr-2 text-blue-500" />
-                          <span className="font-medium">{ride.origin}</span>
-                          <span className="mx-2">→</span>
-                          <span className="font-medium">{ride.destination}</span>
-                        </div>
-                        
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Calendar className="h-4 w-4 mr-2 text-green-500" />
-                          <span>
-                            {new Date(ride.departure_time).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Clock className="h-4 w-4 mr-2 text-orange-500" />
-                          <span>
-                            {new Date(ride.departure_time).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Users className="h-4 w-4 mr-2 text-purple-500" />
-                          <span>{ride.available_seats} seats left</span>
-                        </div>
-                      </div>
+        {/* Search and filters */}
+        <Card className="mb-8 border-0 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  placeholder="Search by origin or destination..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-12 border-0 bg-gray-50 dark:bg-gray-800"
+                />
+              </div>
+              <Button variant="outline" size="lg" className="px-6">
+                <Filter className="h-5 w-5 mr-2" />
+                Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-                      {/* Event Badge */}
-                      {ride.events && (
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300">
-                            🎉 Going to {ride.events.title}
-                          </Badge>
-                        </div>
-                      )}
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-500 rounded-lg mr-4">
+                  <Car className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeRides.length}</p>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium">Active Rides</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-sm bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-500 rounded-lg mr-4">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{upcomingRides.length}</p>
+                  <p className="text-green-600 dark:text-green-400 font-medium">Departing Soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-sm bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-purple-500 rounded-lg mr-4">
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedRides.length}</p>
+                  <p className="text-purple-600 dark:text-purple-400 font-medium">Completed</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                      {/* Price */}
-                      {ride.price_per_seat > 0 && (
-                        <div className="flex items-center text-lg font-semibold text-green-600">
-                          <DollarSign className="h-5 w-5 mr-1" />
-                          {ride.price_per_seat} per seat
-                        </div>
-                      )}
-                    </div>
+        {/* Rides tabs */}
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8 bg-white dark:bg-gray-800 border-0 shadow-sm">
+            <TabsTrigger value="active" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+              Active Rides ({activeRides.length})
+            </TabsTrigger>
+            <TabsTrigger value="upcoming" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+              Departing Soon ({upcomingRides.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-gray-500 data-[state=active]:text-white">
+              Completed ({completedRides.length})
+            </TabsTrigger>
+          </TabsList>
 
-                    {/* Action Button */}
-                    <div className="flex flex-col space-y-2 lg:w-48">
-                      <Button 
-                        disabled={ride.available_seats === 0} 
-                        className="w-full group-hover:shadow-md transition-shadow"
-                      >
-                        {ride.available_seats === 0 ? 'Fully Booked' : 'View Details'}
-                      </Button>
-                    </div>
-                  </div>
+          <TabsContent value="active" className="space-y-6">
+            {activeRides.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {activeRides.map((ride) => (
+                  <RideCard key={ride.id} ride={ride} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="text-center py-12">
+                  <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No active rides</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Be the first to offer or find a ride
+                  </p>
+                  <Button onClick={handleCreateRide} className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Ride
+                  </Button>
                 </CardContent>
               </Card>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <MapPin className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium mb-2">No rides found</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {searchTerm ? 'Try adjusting your search terms' : 'No rides are currently available'}
-          </p>
-          <Button onClick={handleCreateRide}>
-            <Plus className="mr-2 h-4 w-4" />
-            Offer the First Ride
-          </Button>
-        </div>
-      )}
+            )}
+          </TabsContent>
 
-      {/* Dialogs */}
-      <CreateRideDialog
-        open={showCreateRide}
-        onOpenChange={setShowCreateRide}
-      />
+          <TabsContent value="upcoming" className="space-y-6">
+            {upcomingRides.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {upcomingRides.map((ride) => (
+                  <RideCard key={ride.id} ride={ride} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="text-center py-12">
+                  <Clock className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No upcoming departures</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Check back later for rides departing soon
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
+          <TabsContent value="completed" className="space-y-6">
+            {completedRides.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {completedRides.map((ride) => (
+                  <RideCard key={ride.id} ride={ride} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="text-center py-12">
+                  <MapPin className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No completed rides</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Completed rides will appear here
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <CreateRideDialog open={showCreateRide} onOpenChange={setShowCreateRide} />
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
     </div>
   );
