@@ -9,7 +9,362 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string | null
+          id: string
+          ride_id: string
+          seats_booked: number
+          status: Database["public"]["Enums"]["booking_status"] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ride_id: string
+          seats_booked?: number
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ride_id?: string
+          seats_booked?: number
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_participants: {
+        Row: {
+          event_id: string
+          id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          location: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          location: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          event_id: string | null
+          id: string
+          receiver_id: string | null
+          ride_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          receiver_id?: string | null
+          ride_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          receiver_id?: string | null
+          ride_id?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          email: string
+          id: string
+          image_url: string | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          image_url?: string | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          driver_id: string
+          id: string
+          rating: number
+          reviewer_id: string
+          ride_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          rating: number
+          reviewer_id: string
+          ride_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          rating?: number
+          reviewer_id?: string
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          available_seats: number
+          created_at: string | null
+          departure_time: string
+          destination: string
+          driver_id: string
+          event_id: string | null
+          id: string
+          origin: string
+          price_per_seat: number | null
+          seats: number
+          status: Database["public"]["Enums"]["ride_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          available_seats: number
+          created_at?: string | null
+          departure_time: string
+          destination: string
+          driver_id: string
+          event_id?: string | null
+          id?: string
+          origin: string
+          price_per_seat?: number | null
+          seats: number
+          status?: Database["public"]["Enums"]["ride_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          available_seats?: number
+          created_at?: string | null
+          departure_time?: string
+          destination?: string
+          driver_id?: string
+          event_id?: string | null
+          id?: string
+          origin?: string
+          price_per_seat?: number | null
+          seats?: number
+          status?: Database["public"]["Enums"]["ride_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +373,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      ride_status: "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +489,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      ride_status: ["active", "completed", "cancelled"],
+    },
   },
 } as const
