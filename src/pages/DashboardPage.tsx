@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,17 +37,19 @@ export default function DashboardPage() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
-    onSuccess: (data) => {
-      if (data) {
-        setProfileData({
-          name: data.name || '',
-          bio: data.bio || '',
-          phone: data.phone || ''
-        });
-      }
-    }
+    enabled: !!user
   });
+
+  // Update profileData when profile data is loaded
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        name: profile.name || '',
+        bio: profile.bio || '',
+        phone: profile.phone || ''
+      });
+    }
+  }, [profile]);
 
   // Fetch user's rides as driver
   const { data: myRides } = useQuery({
