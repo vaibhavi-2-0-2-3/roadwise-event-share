@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ interface CreateRideDialogProps {
   eventId?: string;
   eventTitle?: string;
   eventLocation?: string;
+  eventDate?: string;
 }
 
 export function CreateRideDialog({ 
@@ -23,7 +24,8 @@ export function CreateRideDialog({
   onOpenChange, 
   eventId, 
   eventTitle, 
-  eventLocation 
+  eventLocation,
+  eventDate
 }: CreateRideDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -37,6 +39,23 @@ export function CreateRideDialog({
     pricePerSeat: 0,
     description: ''
   });
+
+  // Pre-fill form data when event details are provided
+  useEffect(() => {
+    if (eventId && eventLocation && eventDate) {
+      const eventDateTime = new Date(eventDate);
+      // Set departure time 1 hour before event time
+      const departureDateTime = new Date(eventDateTime.getTime() - 60 * 60 * 1000);
+      
+      setFormData(prev => ({
+        ...prev,
+        destination: eventLocation,
+        departureDate: departureDateTime.toISOString().split('T')[0],
+        departureTime: departureDateTime.toTimeString().slice(0, 5),
+        description: `Ride to ${eventTitle || 'event'}`
+      }));
+    }
+  }, [eventId, eventLocation, eventDate, eventTitle]);
 
   const createRideMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -102,6 +121,11 @@ export function CreateRideDialog({
           <DialogTitle>
             {eventId ? `Offer ride to ${eventTitle}` : 'Offer a Ride'}
           </DialogTitle>
+          {eventId && (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Destination and timing are pre-filled based on the event details
+            </p>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,7 +148,13 @@ export function CreateRideDialog({
               value={formData.destination}
               onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
               required
+              disabled={!!eventId}
             />
+            {eventId && (
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Pre-filled from event location
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -137,6 +167,11 @@ export function CreateRideDialog({
                 onChange={(e) => setFormData({ ...formData, departureDate: e.target.value })}
                 required
               />
+              {eventId && (
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  Pre-filled from event
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="time">Time *</Label>
@@ -147,6 +182,11 @@ export function CreateRideDialog({
                 onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
                 required
               />
+              {eventId && (
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  1hr before event
+                </p>
+              )}
             </div>
           </div>
 

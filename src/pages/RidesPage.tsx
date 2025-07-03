@@ -41,6 +41,7 @@ export default function RidesPage() {
             location
           )
         `)
+        .is('event_id', null) // Only show rides not associated with events
         .order('departure_time', { ascending: true });
 
       if (searchTerm) {
@@ -100,6 +101,9 @@ export default function RidesPage() {
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
                 Connect with drivers heading to your destination
+              </p>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                General rides only • Event-specific rides are shown on event pages
               </p>
             </div>
             

@@ -59,7 +59,7 @@ export function DriverReviews({ driverId }: DriverReviewsProps) {
         `)
         .eq('user_id', user.id)
         .eq('rides.driver_id', driverId)
-        .eq('status', 'completed');
+        .eq('rides.status', 'completed');
       
       if (bookingsError) throw bookingsError;
       
@@ -91,12 +91,13 @@ export function DriverReviews({ driverId }: DriverReviewsProps) {
           ride_id,
           rides!inner (
             id,
-            driver_id
+            driver_id,
+            status
           )
         `)
         .eq('user_id', user.id)
         .eq('rides.driver_id', driverId)
-        .eq('status', 'completed')
+        .eq('rides.status', 'completed')
         .limit(1)
         .single();
       
