@@ -1,10 +1,9 @@
 
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin, Users, DollarSign, Star, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, Star, Navigation, ArrowUpDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface RideCardProps {
@@ -16,35 +15,91 @@ export function RideCard({ ride }: RideCardProps) {
   const departureDate = new Date(ride.departure_time);
 
   return (
-    <Card className="shadow-lg border-0 hover:shadow-xl transition-all duration-300 group">
+    <Card className="shadow-sm border hover:shadow-md transition-all duration-300 bg-white">
       <CardContent className="p-6">
-        <div className="space-y-4">
-          {/* Header with driver info */}
-          <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-6">
+          {/* Left Side - Route and Time */}
+          <div className="flex-1 space-y-4">
+            {/* Time */}
+            <div className="text-lg font-semibold">
+              Today at {departureDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+            
+            {/* Route */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div>
+                  <div className="font-medium">{ride.origin}</div>
+                  <div className="text-sm text-gray-500">Pickup location</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 ml-6">
+                <ArrowUpDown className="h-4 w-4 text-gray-400" />
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div>
+                  <div className="font-medium">{ride.destination}</div>
+                  <div className="text-sm text-gray-500">Drop-off location</div>
+                </div>
+              </div>
+            </div>
+
+            {/* See route on map button */}
+            <Button variant="outline" size="sm" className="text-blue-600 border-blue-200">
+              <Navigation className="h-4 w-4 mr-2" />
+              See route on map
+            </Button>
+          </div>
+
+          {/* Center - Driver Info */}
+          <div className="flex flex-col items-center space-y-3">
             <Link 
               to={`/profile/${ride.driver_id}`}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center hover:opacity-80 transition-opacity"
             >
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-16 w-16">
                 <AvatarImage src={ride.profiles?.image_url} />
-                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xl">
                   {ride.profiles?.name?.charAt(0) || 'D'}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <p className="font-semibold">{ride.profiles?.name}</p>
-                <div className="flex items-center gap-1">
+              <div className="text-center mt-2">
+                <div className="font-medium">{ride.profiles?.name}</div>
+                <div className="flex items-center gap-1 text-sm">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm text-gray-600">4.8 (127)</span>
+                  <span>4.8</span>
                 </div>
               </div>
             </Link>
-            
+          </div>
+
+          {/* Right Side - Booking Info */}
+          <div className="flex flex-col items-end space-y-4 min-w-[200px]">
             <div className="text-right">
+              <div className="text-sm text-gray-500">1 seat available</div>
+              <div className="flex items-center gap-2 mt-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={ride.profiles?.image_url} />
+                  <AvatarFallback className="text-xs">
+                    {ride.profiles?.name?.charAt(0) || 'D'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{ride.profiles?.name}</span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <div className="text-sm text-gray-500 mb-1">Price per seat</div>
               {ride.price_per_seat > 0 ? (
-                <div className="text-xl font-bold text-green-600">
+                <div className="text-2xl font-bold">
                   ${ride.price_per_seat}
-                  <span className="text-sm font-normal text-gray-600">/seat</span>
                 </div>
               ) : (
                 <Badge variant="secondary" className="text-sm px-3 py-1 bg-green-100 text-green-800">
@@ -52,72 +107,30 @@ export function RideCard({ ride }: RideCardProps) {
                 </Badge>
               )}
             </div>
+
+            <Link to={`/rides/${ride.id}`} className="w-full">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                Start booking
+              </Button>
+            </Link>
           </div>
+        </div>
 
-          {/* Route */}
-          <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="font-medium text-sm">{ride.origin}</span>
-            </div>
-            <ArrowRight className="h-4 w-4 text-gray-400" />
-            <div className="flex items-center gap-2 flex-1 justify-end">
-              <span className="font-medium text-sm">{ride.destination}</span>
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            </div>
+        {/* Bottom Row - Preferences */}
+        <div className="flex items-center gap-4 mt-6 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-green-600">
+            <span className="text-sm">✓ Music</span>
           </div>
-
-          {/* Trip details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
-              <span className="text-sm">{departureDate.toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-green-600" />
-              <span className="text-sm">
-                {departureDate.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-purple-600" />
-              <span className="text-sm">{ride.available_seats} seats left</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-orange-600" />
-              <Badge variant={ride.status === 'active' && !isExpired ? 'default' : 'secondary'} className="text-xs">
-                {ride.status === 'completed' ? 'Completed' : 
-                 isExpired ? 'Expired' : 
-                 ride.status}
-              </Badge>
-            </div>
+          <div className="flex items-center gap-2 text-red-600">
+            <span className="text-sm">✗ Pets</span>
           </div>
-
-          {/* Event badge */}
-          {ride.events && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  Going to {ride.events.title}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Action button */}
-          <Link to={`/rides/${ride.id}`}>
-            <Button 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 group-hover:scale-[1.02] transition-transform"
-              size="lg"
-            >
-              View Details
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2 text-green-600">
+            <span className="text-sm">✓ Children</span>
+          </div>
+          <div className="ml-auto text-sm text-gray-500">
+            <Users className="h-4 w-4 inline mr-1" />
+            {ride.available_seats} seats left
+          </div>
         </div>
       </CardContent>
     </Card>

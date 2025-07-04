@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { RideStatusButton } from '@/components/rides/RideStatusButton';
 import { LiveTrackingMap } from '@/components/rides/LiveTrackingMap';
+import { DriverReviews } from '@/components/rides/DriverReviews';
 import { toast } from 'sonner';
 
 export default function RideDetailsPage() {
@@ -138,6 +138,7 @@ export default function RideDetailsPage() {
   const isExpired = new Date(ride.departure_time) < new Date();
   const isDriverView = user?.id === ride.driver_id;
   const showLiveTracking = ride.status === 'in_progress' || (existingBooking && ride.status === 'active');
+  const canReview = existingBooking && ride.status === 'completed' && user?.id !== ride.driver_id;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -150,7 +151,7 @@ export default function RideDetailsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             {/* Driver View Badge */}
             {isDriverView && (
               <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
@@ -164,7 +165,7 @@ export default function RideDetailsPage() {
             )}
 
             {/* Route Card */}
-            <Card className="mb-6 shadow-lg border-0">
+            <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="text-2xl">Trip Details</CardTitle>
               </CardHeader>
@@ -226,7 +227,7 @@ export default function RideDetailsPage() {
             </Card>
 
             {/* Preferences Card */}
-            <Card className="mb-6 shadow-lg border-0">
+            <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle>Travel Preferences</CardTitle>
               </CardHeader>
@@ -277,6 +278,9 @@ export default function RideDetailsPage() {
                 </TabsContent>
               </Tabs>
             )}
+
+            {/* Driver Reviews */}
+            <DriverReviews driverId={ride.driver_id} />
           </div>
 
           {/* Sidebar */}
@@ -310,7 +314,7 @@ export default function RideDetailsPage() {
                   </div>
                 </Link>
 
-                {/* Booking Section */}
+                {/* Booking Section - Only show if user is not the driver */}
                 {!isDriverView && canBookRide && !isExpired && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -355,6 +359,20 @@ export default function RideDetailsPage() {
                   </div>
                 )}
 
+                {/* Review prompt for completed rides */}
+                {canReview && (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-medium text-blue-700 dark:text-blue-300">
+                        How was your ride?
+                      </span>
+                    </div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mb-3">
+                      Share your experience to help other travelers
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

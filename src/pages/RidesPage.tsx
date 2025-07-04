@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -11,37 +10,15 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AnimatedBanner } from '@/components/shared/AnimatedBanner';
 import { RideCard } from '@/components/rides/RideCard';
 import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import {
-  Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus
+  Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus, SlidersHorizontal, Users, Luggage
 } from 'lucide-react';
-
-interface RideData {
-  id: string;
-  driver_id: string;
-  origin: string;
-  destination: string;
-  departure_time: string;
-  available_seats: number;
-  seats: number;
-  price_per_seat: number;
-  status: 'active' | 'completed' | 'cancelled' | 'in_progress';
-  event_id: string | null;
-  profiles: {
-    id: string;
-    name: string;
-    image_url: string;
-    bio: string;
-  } | null;
-  events: {
-    id: string;
-    title: string;
-    location: string;
-  } | null;
-}
 
 export default function RidesPage() {
   useRideStatusUpdater();
@@ -50,6 +27,11 @@ export default function RidesPage() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [maxComfort, setMaxComfort] = useState(false);
+  const [allowMusic, setAllowMusic] = useState(false);
+  const [allowPets, setAllowPets] = useState(false);
+  const [allowChildren, setAllowChildren] = useState(false);
+  const [luggageSize, setLuggageSize] = useState('');
 
   const [debouncedFrom] = useDebounce(searchFrom, 300);
   const [debouncedTo] = useDebounce(searchTo, 300);
@@ -60,7 +42,7 @@ export default function RidesPage() {
 
   const { data: rides, isLoading } = useQuery({
     queryKey: ['rides', debouncedFrom, debouncedTo, debouncedDate],
-    queryFn: async (): Promise<RideData[]> => {
+    queryFn: async () => {
       let query = supabase
         .from('rides')
         .select(`
@@ -81,7 +63,7 @@ export default function RidesPage() {
             id, title, location
           )
         `)
-        .is('event_id', null) // Only show general rides, not event-specific ones
+        .is('event_id', null)
         .order('departure_time', { ascending: true });
 
       if (debouncedFrom) {
@@ -164,48 +146,130 @@ export default function RidesPage() {
           </div>
         </div>
 
-        <Card className="mb-8 shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-xl">Search Rides</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="From"
-                  value={searchFrom}
-                  onChange={(e) => setSearchFrom(e.target.value)}
-                  className="pl-10 h-12 shadow-sm"
-                />
+        {/* Enhanced Search and Filters */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          {/* Main Search Card */}
+          <Card className="lg:col-span-3 shadow-lg border-0 bg-white dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="text-xl">Search Rides</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Where from?"
+                    value={searchFrom}
+                    onChange={(e) => setSearchFrom(e.target.value)}
+                    className="pl-10 h-12 shadow-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Where to?"
+                    value={searchTo}
+                    onChange={(e) => setSearchTo(e.target.value)}
+                    className="pl-10 h-12 shadow-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                    className="pl-10 h-12 shadow-sm"
+                  />
+                </div>
+                <Button disabled className="h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+                  <Search className="w-4 h-4 mr-2" />
+                  Search rides
+                </Button>
               </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="To"
-                  value={searchTo}
-                  onChange={(e) => setSearchTo(e.target.value)}
-                  className="pl-10 h-12 shadow-sm"
-                />
+            </CardContent>
+          </Card>
+
+          {/* Filters Sidebar */}
+          <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <SlidersHorizontal className="h-5 w-5" />
+                Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Luggage Size */}
+              <div>
+                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Luggage className="h-4 w-4" />
+                  Luggage
+                </label>
+                <Select value={luggageSize} onValueChange={setLuggageSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="date"
-                  value={searchDate}
-                  onChange={(e) => setSearchDate(e.target.value)}
-                  className="pl-10 h-12 shadow-sm"
-                />
+
+              {/* Comfort */}
+              <div>
+                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Comfort
+                </label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="maxComfort" 
+                    checked={maxComfort}
+                    onCheckedChange={setMaxComfort}
+                  />
+                  <label htmlFor="maxComfort" className="text-sm">Max 2 people in back seat</label>
+                </div>
               </div>
-              <Button disabled className="h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-                <Search className="w-4 h-4 mr-2" />
-                Search
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
+              {/* Preferences */}
+              <div>
+                <label className="text-sm font-medium mb-3 block">Preferences</label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="music" 
+                      checked={allowMusic}
+                      onCheckedChange={setAllowMusic}
+                    />
+                    <label htmlFor="music" className="text-sm">Music</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="pets" 
+                      checked={allowPets}
+                      onCheckedChange={setAllowPets}
+                    />
+                    <label htmlFor="pets" className="text-sm">Animals</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="children" 
+                      checked={allowChildren}
+                      onCheckedChange={setAllowChildren}
+                    />
+                    <label htmlFor="children" className="text-sm">Children</label>
+                  </div>
+                </div>
+              </div>
+
+              <Button className="w-full">Update</Button>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Tabs and Ride List */}
         <Tabs defaultValue="active" className="w-full">
@@ -214,7 +278,7 @@ export default function RidesPage() {
               value="active" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white font-medium"
             >
-              Active Rides ({activeRides.length})
+              Upcoming rides ({activeRides.length})
             </TabsTrigger>
             <TabsTrigger 
               value="upcoming" 
@@ -232,7 +296,7 @@ export default function RidesPage() {
 
           <TabsContent value="active" className="space-y-6">
             {activeRides.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="space-y-4">
                 {activeRides.map((ride) => (
                   <RideCard key={ride.id} ride={ride} />
                 ))}
@@ -241,7 +305,7 @@ export default function RidesPage() {
               <Card className="text-center py-16 shadow-lg border-0">
                 <CardContent>
                   <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No active rides found</h3>
+                  <h3 className="text-lg font-medium mb-2">No upcoming rides found</h3>
                   <p className="text-gray-600 dark:text-gray-400">
                     Be the first to offer a ride in your area!
                   </p>
@@ -252,7 +316,7 @@ export default function RidesPage() {
 
           <TabsContent value="upcoming" className="space-y-6">
             {upcomingRides.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="space-y-4">
                 {upcomingRides.map((ride) => (
                   <RideCard key={ride.id} ride={ride} />
                 ))}
@@ -261,7 +325,7 @@ export default function RidesPage() {
               <Card className="text-center py-16 shadow-lg border-0">
                 <CardContent>
                   <Clock className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No upcoming rides</h3>
+                  <h3 className="text-lg font-medium mb-2">No rides departing soon</h3>
                   <p className="text-gray-600 dark:text-gray-400">
                     Rides departing soon will appear here.
                   </p>
@@ -272,7 +336,7 @@ export default function RidesPage() {
 
           <TabsContent value="completed" className="space-y-6">
             {completedRides.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="space-y-4">
                 {completedRides.map((ride) => (
                   <RideCard key={ride.id} ride={ride} />
                 ))}
