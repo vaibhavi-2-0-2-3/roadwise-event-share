@@ -15,6 +15,7 @@ import { WeatherWidget } from '@/components/rides/WeatherWidget';
 import { CalendarButton } from '@/components/rides/CalendarButton';
 import { RouteMapDialog } from '@/components/rides/RouteMapDialog';
 import { CompletedRideReview } from '@/components/rides/CompletedRideReview';
+import { PendingRequests } from '@/components/rides/PendingRequests';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 export default function RideDetailsPage() {
@@ -105,6 +106,8 @@ export default function RideDetailsPage() {
     );
   }
 
+  const isDriverView = user?.id === ride.driver_id;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -119,6 +122,11 @@ export default function RideDetailsPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Weather Widget */}
             <WeatherWidget date={ride.departure_time} />
+
+            {/* Driver's Pending Requests Section */}
+            {isDriverView && (
+              <PendingRequests rideId={ride.id} />
+            )}
 
             {/* Ride Details Card */}
             <Card className="shadow-lg border-0">
