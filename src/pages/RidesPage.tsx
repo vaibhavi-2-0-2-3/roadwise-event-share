@@ -60,11 +60,20 @@ export default function RidesPage() {
 
   const { data: rides, isLoading } = useQuery({
     queryKey: ['rides', debouncedFrom, debouncedTo, debouncedDate],
-    queryFn: async () => {
+    queryFn: async (): Promise<RideData[]> => {
       let query = supabase
         .from('rides')
         .select(`
-          *,
+          id,
+          driver_id,
+          origin,
+          destination,
+          departure_time,
+          available_seats,
+          seats,
+          price_per_seat,
+          status,
+          event_id,
           profiles:driver_id (
             id, name, image_url, bio
           ),
@@ -89,7 +98,7 @@ export default function RidesPage() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as RideData[];
+      return data || [];
     }
   });
 
