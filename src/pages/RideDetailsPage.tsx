@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, DollarSign, Car, MessageCircle, Star, Shield } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, DollarSign, Car, Star, Shield, Music, Baby, Cigarette, Heart, Luggage, Navigation } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { RideChat } from '@/components/rides/RideChat';
-import { DriverReviews } from '@/components/rides/DriverReviews';
 import { RideStatusButton } from '@/components/rides/RideStatusButton';
+import { LiveTrackingMap } from '@/components/rides/LiveTrackingMap';
 import { toast } from 'sonner';
 
 export default function RideDetailsPage() {
@@ -136,6 +135,8 @@ export default function RideDetailsPage() {
 
   const canBookRide = user && !existingBooking && ride.available_seats > 0 && user.id !== ride.driver_id;
   const isExpired = new Date(ride.departure_time) < new Date();
+  const isDriverView = user?.id === ride.driver_id;
+  const showLiveTracking = ride.status === 'in_progress' || (existingBooking && ride.status === 'active');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -146,145 +147,245 @@ export default function RideDetailsPage() {
           Back to Rides
         </Link>
 
-        {/* Hero Section */}
-        <Card className="mb-8 border-0 shadow-xl bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-            <CardContent className="p-8">
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
-                <div className="flex items-center gap-6 flex-1">
-                  <Avatar className="h-20 w-20 ring-4 ring-white shadow-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Driver View Badge */}
+            {isDriverView && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2">
+                  <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-medium text-blue-700 dark:text-blue-300">
+                    ✅ This is your ride (driver view)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Route Card */}
+            <Card className="mb-6 shadow-lg border-0">
+              <CardHeader>
+                <CardTitle className="text-2xl">Trip Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Route */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                      <div>
+                        <p className="font-semibold text-lg">{ride.origin}</p>
+                        <p className="text-sm text-gray-600">Start</p>
+                      </div>
+                    </div>
+                    <div className="border-t-2 border-dashed border-gray-300 flex-1 mx-4"></div>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="font-semibold text-lg text-right">{ride.destination}</p>
+                        <p className="text-sm text-gray-600 text-right">Destination</p>
+                      </div>
+                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Trip Info */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="text-center">
+                      <Calendar className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                      <p className="font-semibold">{new Date(ride.departure_time).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">Date</p>
+                    </div>
+                    <div className="text-center">
+                      <Clock className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                      <p className="font-semibold">
+                        {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <p className="text-sm text-gray-600">Time</p>
+                    </div>
+                    <div className="text-center">
+                      <Users className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                      <p className="font-semibold">{ride.available_seats} seats</p>
+                      <p className="text-sm text-gray-600">Available</p>
+                    </div>
+                    <div className="text-center">
+                      <DollarSign className="h-8 w-8 mx-auto text-orange-600 mb-2" />
+                      <p className="font-semibold">
+                        {ride.price_per_seat > 0 ? `$${ride.price_per_seat}` : 'Free'}
+                      </p>
+                      <p className="text-sm text-gray-600">Per seat</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Preferences Card */}
+            <Card className="mb-6 shadow-lg border-0">
+              <CardHeader>
+                <CardTitle>Travel Preferences</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+                    <Heart className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Pets OK</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                    <Music className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm">Music OK</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
+                    <Cigarette className="h-5 w-5 text-red-600" />
+                    <span className="text-sm">No Smoking</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                    <Baby className="h-5 w-5 text-yellow-600" />
+                    <span className="text-sm">Kids OK</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Luggage className="h-5 w-5 text-gray-600" />
+                    <span className="font-medium">Luggage Policy</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Medium bags allowed • No detours • Comfort guaranteed</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Tracking Tab */}
+            {showLiveTracking && (
+              <Tabs defaultValue="tracking" className="w-full">
+                <TabsList className="grid w-full grid-cols-1 mb-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
+                  <TabsTrigger 
+                    value="tracking" 
+                    className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    Live Tracking
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="tracking">
+                  <LiveTrackingMap rideId={rideId!} ride={ride} />
+                </TabsContent>
+              </Tabs>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Driver Card */}
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6">
+                <Link 
+                  to={`/profile/${ride.driver_id}`} 
+                  className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-gray-100 dark:border-gray-800 mb-6"
+                >
+                  <Avatar className="h-16 w-16">
                     <AvatarImage src={ride.profiles?.image_url} />
-                    <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xl">
                       {ride.profiles?.name?.charAt(0) || 'D'}
                     </AvatarFallback>
                   </Avatar>
-                  
                   <div className="flex-1">
-                    <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-white">
-                      {ride.origin} → {ride.destination}
-                    </h1>
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                        Driver: {ride.profiles?.name}
-                      </span>
-                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800">
-                        <Shield className="h-3 w-3" />
+                    <h3 className="font-semibold text-lg">{ride.profiles?.name}</h3>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">4.8</span>
+                      <span className="text-sm text-gray-600">(127 reviews)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        <Shield className="h-3 w-3 mr-1" />
                         Verified
                       </Badge>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">4.8</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                          <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Date(ride.departure_time).toLocaleDateString()}
-                          </p>
-                          <p className="text-xs text-gray-500">Date</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                          <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Date(ride.departure_time).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                          <p className="text-xs text-gray-500">Time</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                          <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {ride.available_seats} of {ride.seats} left
-                          </p>
-                          <p className="text-xs text-gray-500">Seats</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                          <Car className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <Badge variant={ride.available_seats > 0 && !isExpired ? 'default' : 'secondary'}>
-                            {ride.status === 'completed' ? 'Completed' : 
-                             isExpired ? 'Expired' : 
-                             ride.available_seats > 0 ? 'Available' : 'Full'}
-                          </Badge>
-                          <p className="text-xs text-gray-500">Status</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="text-right space-y-4">
-                  {ride.price_per_seat > 0 ? (
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      ${ride.price_per_seat}
-                      <span className="text-lg font-normal text-gray-600">/seat</span>
-                    </div>
-                  ) : (
-                    <Badge variant="secondary" className="text-lg px-4 py-2 mb-2 bg-green-100 text-green-800">
-                      Free Ride
-                    </Badge>
-                  )}
-                  
-                  <div className="flex flex-col gap-3">
-                    {canBookRide && !isExpired && (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm font-medium">Seats:</label>
-                          <select 
-                            value={seatsToBook} 
-                            onChange={(e) => setSeatsToBook(Number(e.target.value))}
-                            className="px-3 py-1 border rounded-md bg-background"
-                          >
-                            {Array.from({ length: Math.min(ride.available_seats, 4) }, (_, i) => (
-                              <option key={i + 1} value={i + 1}>{i + 1}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <Button 
-                          onClick={handleBookRide} 
-                          disabled={bookRideMutation.isPending}
-                          size="lg"
-                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                        >
-                          {bookRideMutation.isPending ? 'Booking...' : `Book ${seatsToBook} Seat${seatsToBook > 1 ? 's' : ''}`}
-                          {ride.price_per_seat > 0 && (
-                            <span className="ml-2">
-                              (${(ride.price_per_seat * seatsToBook).toFixed(2)})
-                            </span>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                    
-                    <RideStatusButton ride={ride} />
-                  </div>
-                </div>
-              </div>
+                </Link>
 
-              {/* Event Badge */}
-              {ride.events && (
-                <div className="mt-6 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                {/* Booking Section */}
+                {!isDriverView && canBookRide && !isExpired && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Seats to book:</span>
+                      <select 
+                        value={seatsToBook} 
+                        onChange={(e) => setSeatsToBook(Number(e.target.value))}
+                        className="px-3 py-2 border rounded-md bg-background"
+                      >
+                        {Array.from({ length: Math.min(ride.available_seats, 4) }, (_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button 
+                      onClick={handleBookRide} 
+                      disabled={bookRideMutation.isPending}
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg py-6"
+                    >
+                      {bookRideMutation.isPending ? 'Booking...' : 'Start Booking'}
+                      {ride.price_per_seat > 0 && (
+                        <span className="ml-2">
+                          (${(ride.price_per_seat * seatsToBook).toFixed(2)})
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {existingBooking && (
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <span className="font-medium text-green-700 dark:text-green-300">
+                        You've booked {existingBooking.seats_booked} seat(s)
+                      </span>
+                    </div>
+                    <Badge className="mt-2 bg-green-500">
+                      Status: {existingBooking.status}
+                    </Badge>
+                  </div>
+                )}
+
+              </CardContent>
+            </Card>
+
+            {/* Trip Stats */}
+            <Card className="shadow-lg border-0">
+              <CardHeader>
+                <CardTitle>Trip Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-gray-600 dark:text-gray-400">Total Seats</span>
+                  <span className="font-semibold">{ride.seats}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-gray-600 dark:text-gray-400">Available</span>
+                  <span className="font-semibold">{ride.available_seats}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-gray-600 dark:text-gray-400">Status</span>
+                  <Badge variant={ride.status === 'active' && !isExpired ? 'default' : 'secondary'}>
+                    {ride.status === 'completed' ? 'Completed' : 
+                     isExpired ? 'Expired' : 
+                     ride.status}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Event Badge */}
+            {ride.events && (
+              <Card className="shadow-lg border-0">
+                <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <span className="font-medium text-blue-700 dark:text-blue-300">
@@ -294,160 +395,11 @@ export default function RideDetailsPage() {
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                     Join other attendees heading to this event
                   </p>
-                </div>
-              )}
+                </CardContent>
+              </Card>
+            )}
 
-              {existingBooking && (
-                <div className="mt-6 p-4 bg-green-100 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <span className="font-medium text-green-700 dark:text-green-300">
-                      You've booked {existingBooking.seats_booked} seat(s) for this ride
-                    </span>
-                  </div>
-                  <Badge className="mt-2 bg-green-500">
-                    Status: {existingBooking.status}
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="reviews" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
-                <TabsTrigger value="reviews" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-                  <Star className="h-4 w-4" />
-                  Driver Reviews
-                </TabsTrigger>
-                <TabsTrigger value="chat" className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white">
-                  <MessageCircle className="h-4 w-4" />
-                  Ride Chat
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="reviews">
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="p-0">
-                    <DriverReviews driverId={ride.driver_id} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="chat">
-                {user && (existingBooking || user.id === ride.driver_id) ? (
-                  <Card className="border-0 shadow-sm">
-                    <CardContent className="p-0">
-                      <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="border-0 shadow-sm">
-                    <CardContent className="text-center py-12">
-                      <MessageCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Book to start chatting</h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        Book this ride to chat with the driver and coordinate your trip
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Driver Info */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Driver Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Link 
-                  to={`/profile/${ride.driver_id}`} 
-                  className="flex items-center gap-3 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-gray-100 dark:border-gray-800"
-                >
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={ride.profiles?.image_url} />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                      {ride.profiles?.name?.charAt(0) || 'D'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{ride.profiles?.name}</p>
-                    <p className="text-sm text-blue-600 hover:text-blue-800">View Profile →</p>
-                  </div>
-                </Link>
-                {ride.profiles?.bio && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    {ride.profiles.bio}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Route Details */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Route Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mt-2"></div>
-                    <div>
-                      <p className="font-medium">Pickup Location</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{ride.origin}</p>
-                    </div>
-                  </div>
-                  <div className="border-l-2 border-dashed border-gray-300 ml-1.5 h-8"></div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full mt-2"></div>
-                    <div>
-                      <p className="font-medium">Drop-off Location</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{ride.destination}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ride Stats */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Ride Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <span className="text-gray-600 dark:text-gray-400">Total Seats</span>
-                    <span className="font-semibold">{ride.seats}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <span className="text-gray-600 dark:text-gray-400">Available</span>
-                    <span className="font-semibold">{ride.available_seats}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <span className="text-gray-600 dark:text-gray-400">Price per seat</span>
-                    <span className="font-semibold">
-                      {ride.price_per_seat > 0 ? `$${ride.price_per_seat}` : 'Free'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <span className="text-gray-600 dark:text-gray-400">Status</span>
-                    <Badge variant={ride.status === 'active' && !isExpired ? 'default' : 'secondary'}>
-                      {ride.status === 'completed' ? 'Completed' : 
-                       isExpired ? 'Expired' : 
-                       ride.status}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <RideStatusButton ride={ride} />
           </div>
         </div>
       </div>

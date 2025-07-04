@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Star, MapPin, Calendar, Car, Phone, Mail, Award } from 'lucide-react';
+import { Star, MapPin, Calendar, Car, Phone, Mail, Award, Shield, Leaf } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function ProfilePage() {
@@ -79,6 +79,14 @@ export default function ProfilePage() {
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
     : 0;
 
+  const ratingDistribution = reviews ? 
+    Array.from({ length: 5 }, (_, i) => {
+      const starCount = 5 - i;
+      const count = reviews.filter(r => r.rating === starCount).length;
+      const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+      return { stars: starCount, count, percentage };
+    }) : [];
+
   if (profileLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -112,200 +120,186 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header Section */}
-      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-0 shadow-lg">
-        <CardContent className="p-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Banner */}
+        <div className="relative h-48 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-8 overflow-hidden">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute bottom-6 left-6 right-6 flex items-end gap-6">
+            <Avatar className="h-24 w-24 border-4 border-white shadow-xl">
               <AvatarImage src={profile.image_url} />
-              <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+              <AvatarFallback className="text-3xl bg-white text-blue-600">
                 {profile.name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            
-            <div className="flex-1 text-center md:text-left">
+            <div className="flex-1 text-white">
               <h1 className="text-3xl font-bold mb-2">{profile.name}</h1>
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-                {reviews && reviews.length > 0 ? (
-                  <>
-                    <div className="flex items-center gap-1">
-                      {renderStars(Math.round(averageRating))}
-                    </div>
-                    <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-gray-600 dark:text-gray-400">No reviews yet</span>
-                )}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
+                  <span className="text-white/80">
+                    ({reviews?.length || 0} review{reviews?.length !== 1 ? 's' : ''})
+                  </span>
+                </div>
+                <Badge className="bg-green-500 hover:bg-green-600">
+                  <Shield className="h-4 w-4 mr-1" />
+                  Phone Verified
+                </Badge>
               </div>
-              {profile.bio && (
-                <p className="text-gray-700 dark:text-gray-300 max-w-2xl">{profile.bio}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Badge variant="secondary" className="flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                Verified Driver
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                {ridesOffered?.length || 0} Rides Completed
-              </Badge>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Recent Reviews */}
-          <Card className="shadow-lg border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Recent Reviews
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {reviews && reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {reviews.slice(0, 5).map((review) => (
-                    <div key={review.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Rating Breakdown */}
+            <Card className="shadow-lg border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-6 w-6 text-yellow-500" />
+                  Rating Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {ratingDistribution.map((item) => (
+                    <div key={item.stars} className="flex items-center gap-4">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm font-medium">{item.stars}</span>
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      </div>
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600 w-12">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Reviews */}
+            <Card className="shadow-lg border-0">
+              <CardHeader>
+                <CardTitle>Recent Reviews</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {reviews && reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    {reviews.slice(0, 5).map((review) => (
+                      <div key={review.id} className="border-b border-gray-200 last:border-0 pb-6 last:pb-0">
+                        <div className="flex items-start gap-4">
+                          <Avatar className="h-12 w-12">
                             <AvatarImage src={review.reviewer_profile?.image_url} />
                             <AvatarFallback>
                               {review.reviewer_profile?.name?.charAt(0) || 'U'}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-medium">{review.reviewer_profile?.name}</p>
-                            <div className="flex items-center gap-1">
-                              {renderStars(review.rating)}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="font-semibold">{review.reviewer_profile?.name}</p>
+                                <div className="flex items-center gap-1">
+                                  {renderStars(review.rating)}
+                                </div>
+                              </div>
+                              <span className="text-sm text-gray-500">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </span>
                             </div>
+                            {review.rides && (
+                              <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{review.rides.origin} → {review.rides.destination}</span>
+                              </div>
+                            )}
+                            {review.comment && (
+                              <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
+                            )}
                           </div>
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </span>
                       </div>
-                      {review.rides && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          Route: {review.rides.origin} → {review.rides.destination}
-                        </div>
-                      )}
-                      {review.comment && (
-                        <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Star className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No reviews yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    This driver hasn't received any reviews yet.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Star className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No reviews yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      This driver hasn't received any reviews yet.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Recent Rides */}
-          <Card className="shadow-lg border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Car className="h-5 w-5 text-blue-500" />
-                Recent Rides
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {ridesOffered && ridesOffered.length > 0 ? (
-                <div className="space-y-4">
-                  {ridesOffered.map((ride) => (
-                    <div key={ride.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">{ride.origin} → {ride.destination}</span>
-                        </div>
-                        <Badge variant="secondary">Completed</Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(ride.departure_time).toLocaleDateString()}
-                        </span>
-                        {ride.events && (
-                          <span>Event: {ride.events.title}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Profile Stats */}
+            <Card className="shadow-lg border-0">
+              <CardHeader>
+                <CardTitle>Profile Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center p-4 bg-blue-50 rounded-xl">
+                  <Car className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                  <p className="text-2xl font-bold">{ridesOffered?.length || 0}</p>
+                  <p className="text-sm text-gray-600">Total Rides</p>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No completed rides</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    This driver hasn't completed any rides yet.
-                  </p>
+                <div className="text-center p-4 bg-green-50 rounded-xl">
+                  <Leaf className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                  <p className="text-2xl font-bold">1.2 tons</p>
+                  <p className="text-sm text-gray-600">CO₂ Saved</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                <div className="text-center p-4 bg-purple-50 rounded-xl">
+                  <Award className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                  <p className="text-2xl font-bold">Member</p>
+                  <p className="text-sm text-gray-600">Since 2023</p>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Contact Info */}
-          <Card className="shadow-lg border-0">
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-gray-500" />
-                <span>{profile.email}</span>
-              </div>
-              {profile.phone && (
+            {/* Contact Info */}
+            <Card className="shadow-lg border-0">
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-500" />
-                  <span>{profile.phone}</span>
+                  <Mail className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm">{profile.email}</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                {profile.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-gray-500" />
+                    <span className="text-sm">{profile.phone}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm">San Francisco, CA</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Stats */}
-          <Card className="shadow-lg border-0">
-            <CardHeader>
-              <CardTitle>Driver Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total Rides</span>
-                <span className="font-semibold">{ridesOffered?.length || 0}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Average Rating</span>
-                <span className="font-semibold">{averageRating.toFixed(1)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total Reviews</span>
-                <span className="font-semibold">{reviews?.length || 0}</span>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Bio */}
+            {profile.bio && (
+              <Card className="shadow-lg border-0">
+                <CardHeader>
+                  <CardTitle>About</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 dark:text-gray-300">{profile.bio}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
