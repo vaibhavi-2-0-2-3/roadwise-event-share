@@ -162,7 +162,7 @@ export default function RidesPage() {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Available Rides</h2>
+
               <p className="text-gray-600 dark:text-gray-400">
                 Have a car? Offer a ride to someone going your way.
               </p>
@@ -179,148 +179,70 @@ export default function RidesPage() {
           </div>
         </div>
 
-        {/* Enhanced Search and Filters */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {/* Main Search Card */}
-          <Card className="lg:col-span-3 shadow-lg border-0 bg-white dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-xl">Search Rides</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Where from?"
-                    value={searchFrom}
-                    onChange={(e) => setSearchFrom(e.target.value)}
-                    className="pl-10 h-12 shadow-sm"
-                  />
-                </div>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Where to?"
-                    value={searchTo}
-                    onChange={(e) => setSearchTo(e.target.value)}
-                    className="pl-10 h-12 shadow-sm"
-                  />
-                </div>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="date"
-                    value={searchDate}
-                    onChange={(e) => setSearchDate(e.target.value)}
-                    className="pl-10 h-12 shadow-sm"
-                  />
-                </div>
-                <Button disabled className="h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-                  <Search className="w-4 h-4 mr-2" />
-                  Search rides
-                </Button>
+        {/* Enhanced Search */}
+        <Card className="bg-gradient-card border border-border/50 mb-8">
+          <CardHeader>
+            <CardTitle className="text-foreground">Search Rides</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="From"
+                  value={searchFrom}
+                  onChange={(e) => setSearchFrom(e.target.value)}
+                  className="pl-10 bg-input border border-border"
+                />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Filters Sidebar */}
-          <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <SlidersHorizontal className="h-5 w-5" />
-                Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Luggage Size */}
-              <div>
-                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Luggage className="h-4 w-4" />
-                  Luggage
-                </label>
-                <Select value={luggageSize} onValueChange={setLuggageSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="To"
+                  value={searchTo}
+                  onChange={(e) => setSearchTo(e.target.value)}
+                  className="pl-10 bg-input border border-border"
+                />
               </div>
-
-              {/* Comfort */}
-              <div>
-                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Comfort
-                </label>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="maxComfort" 
-                    checked={maxComfort}
-                    onCheckedChange={handleCheckboxChange(setMaxComfort)}
-                  />
-                  <label htmlFor="maxComfort" className="text-sm">Max 2 people in back seat</label>
-                </div>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="date"
+                  value={searchDate}
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  className="pl-10 bg-input border border-border"
+                />
               </div>
-
-              {/* Preferences */}
-              <div>
-                <label className="text-sm font-medium mb-3 block">Preferences</label>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="music" 
-                      checked={allowMusic}
-                      onCheckedChange={handleCheckboxChange(setAllowMusic)}
-                    />
-                    <label htmlFor="music" className="text-sm">Music</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="pets" 
-                      checked={allowPets}
-                      onCheckedChange={handleCheckboxChange(setAllowPets)}
-                    />
-                    <label htmlFor="pets" className="text-sm">Animals</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="children" 
-                      checked={allowChildren}
-                      onCheckedChange={handleCheckboxChange(setAllowChildren)}
-                    />
-                    <label htmlFor="children" className="text-sm">Children</label>
-                  </div>
-                </div>
-              </div>
-
-              <Button className="w-full">Update</Button>
-            </CardContent>
-          </Card>
-        </div>
+              <Button className="bg-primary/90 hover:bg-primary/60">
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs and Ride List */}
         <Tabs defaultValue="active" className="w-full">
+
+          <h2 className="text-2xl font-bold mb-2">Available Rides</h2>
+
           <TabsList className="grid w-full grid-cols-3 mb-8 bg-white dark:bg-gray-800 border-0 shadow-lg h-14">
-            <TabsTrigger 
-              value="active" 
+            <TabsTrigger
+              value="active"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white font-medium"
             >
               Upcoming rides ({activeRides.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="upcoming" 
+            <TabsTrigger
+              value="upcoming"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white font-medium"
             >
               Departing Soon ({upcomingRides.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="completed" 
+            <TabsTrigger
+              value="completed"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-600 data-[state=active]:to-gray-700 data-[state=active]:text-white font-medium"
             >
               Completed ({completedRides.length})
