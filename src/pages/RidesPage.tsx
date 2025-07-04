@@ -19,6 +19,30 @@ import {
   Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus
 } from 'lucide-react';
 
+interface RideData {
+  id: string;
+  driver_id: string;
+  origin: string;
+  destination: string;
+  departure_time: string;
+  available_seats: number;
+  seats: number;
+  price_per_seat: number;
+  status: 'active' | 'completed' | 'cancelled' | 'in_progress';
+  event_id: string | null;
+  profiles: {
+    id: string;
+    name: string;
+    image_url: string;
+    bio: string;
+  } | null;
+  events: {
+    id: string;
+    title: string;
+    location: string;
+  } | null;
+}
+
 export default function RidesPage() {
   useRideStatusUpdater();
   const { user } = useAuth();
@@ -65,7 +89,7 @@ export default function RidesPage() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as RideData[];
     }
   });
 
