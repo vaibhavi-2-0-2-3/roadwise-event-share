@@ -11,40 +11,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { AnimatedBanner } from '@/components/shared/AnimatedBanner';
 import { RideCard } from '@/components/rides/RideCard';
 import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import {
-  Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus, SlidersHorizontal, Users, Luggage
+  Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus
 } from 'lucide-react';
-
-// Define a simplified type for our ride data
-type RideData = {
-  id: string;
-  driver_id: string;
-  origin: string;
-  destination: string;
-  departure_time: string;
-  available_seats: number;
-  seats: number;
-  price_per_seat: number | null;
-  status: string | null;
-  event_id: string | null;
-  profiles: {
-    id: string;
-    name: string;
-    image_url: string | null;
-    bio: string | null;
-  } | null;
-  events: {
-    id: string;
-    title: string;
-    location: string;
-  } | null;
-};
 
 export default function RidesPage() {
   useRideStatusUpdater();
@@ -53,11 +26,6 @@ export default function RidesPage() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
-  const [maxComfort, setMaxComfort] = useState(false);
-  const [allowMusic, setAllowMusic] = useState(false);
-  const [allowPets, setAllowPets] = useState(false);
-  const [allowChildren, setAllowChildren] = useState(false);
-  const [luggageSize, setLuggageSize] = useState('');
 
   const [debouncedFrom] = useDebounce(searchFrom, 300);
   const [debouncedTo] = useDebounce(searchTo, 300);
@@ -66,9 +34,9 @@ export default function RidesPage() {
   const [showCreateRide, setShowCreateRide] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
-  const { data: rides, isLoading } = useQuery<RideData[]>({
+  const { data: rides, isLoading } = useQuery({
     queryKey: ['rides', debouncedFrom, debouncedTo, debouncedDate],
-    queryFn: async (): Promise<RideData[]> => {
+    queryFn: async () => {
       let query = supabase
         .from('rides')
         .select(`
@@ -106,7 +74,7 @@ export default function RidesPage() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as RideData[];
+      return data || [];
     }
   });
 
@@ -116,13 +84,6 @@ export default function RidesPage() {
     } else {
       setShowCreateRide(true);
     }
-  };
-
-  // Helper function to handle checkbox changes
-  const handleCheckboxChange = (setter: (value: boolean) => void) => {
-    return (checked: boolean | "indeterminate") => {
-      setter(checked === true);
-    };
   };
 
   const activeRides = rides?.filter(r =>
@@ -162,7 +123,6 @@ export default function RidesPage() {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
-
               <p className="text-gray-600 dark:text-gray-400">
                 Have a car? Offer a ride to someone going your way.
               </p>
@@ -225,7 +185,6 @@ export default function RidesPage() {
 
         {/* Tabs and Ride List */}
         <Tabs defaultValue="active" className="w-full">
-
           <h2 className="text-2xl font-bold mb-2">Available Rides</h2>
 
           <TabsList className="grid w-full grid-cols-3 mb-8 bg-white dark:bg-gray-800 border-0 shadow-lg h-14">
