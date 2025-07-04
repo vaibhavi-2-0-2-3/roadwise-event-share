@@ -54,9 +54,9 @@ export function RideCard({ ride }: RideCardProps) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="text-right">
-                <Badge 
+                <Badge
                   variant={ride.status === 'active' && !isExpired ? 'default' : 'secondary'}
                   className={`${ride.status === 'completed' ? 'bg-green-100 text-green-800' : ''}`}
                 >
@@ -96,7 +96,7 @@ export function RideCard({ ride }: RideCardProps) {
                   <p className="text-xs text-gray-500">Date</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center text-gray-600 dark:text-gray-400">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
                   <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -111,7 +111,7 @@ export function RideCard({ ride }: RideCardProps) {
                   <p className="text-xs text-gray-500">Time</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center text-gray-600 dark:text-gray-400">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
                   <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -123,7 +123,7 @@ export function RideCard({ ride }: RideCardProps) {
                   <p className="text-xs text-gray-500">Seats available</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center text-gray-600 dark:text-gray-400">
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg mr-3">
                   <DollarSign className="h-4 w-4 text-orange-600 dark:text-orange-400" />
@@ -156,16 +156,16 @@ export function RideCard({ ride }: RideCardProps) {
                   View Details
                 </Button>
               </Link>
-              
+
               {ride.available_seats > 0 && ride.status === 'active' && !isExpired && (
-                <Button 
-                  onClick={handleBookRide} 
+                <Button
+                  onClick={handleBookRide}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   Book Ride
                 </Button>
               )}
-              
+
               <RideStatusButton ride={ride} />
             </div>
           </div>

@@ -15,7 +15,7 @@ export default function HomePage() {
         .select('*')
         .order('event_date', { ascending: true })
         .limit(3);
-      
+
       if (error) throw error;
       return data;
     }
@@ -39,7 +39,7 @@ export default function HomePage() {
         .eq('status', 'active')
         .order('departure_time', { ascending: true })
         .limit(3);
-      
+
       if (error) throw error;
       return data;
     }
@@ -75,26 +75,29 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/20 dark:via-background dark:to-purple-950/20">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="container mx-auto px-4 py-16 lg:py-24">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-8">
-              🚗 Welcome to the Future of Carpooling
+      <section className="relative overflow-hidden pt-32 pb-24 md:pt-40 md:pb-32">
+
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom_right,#ffffff,#f5f9ff,#edf5ff)]"></div>
+
+        <div className="container mx-auto px-4">
+
+          <div className="lg:w-1/2 space-y-8 text-center lg:text-left">
+
+            <div className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 animate-fade-in opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+              <span className="flex h-2 w-2 rounded-full bg-brand-500 mr-2"></span>
+              <span>Welcome to the Future of Carpooling</span>
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Share the Journey with{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Roadwise
-              </span>
+
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl animate-fade-in opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+              Share Your Journey With <br />
+              <span className="text-brand-800">Roadwise</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 animate-fade-in opacity-0" style={{ animationDelay: '0.7s', animationFillMode: 'forwards' }}>
               Connect with fellow travelers, share rides to events, and make every journey memorable while reducing your carbon footprint.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-4 animate-fade-in opacity-0" style={{ animationDelay: '0.9s', animationFillMode: 'forwards' }}>
               <Button asChild size="lg" className="text-lg px-8 py-6">
                 <Link to="/events">
                   <Calendar className="mr-2 h-5 w-5" />
@@ -108,6 +111,24 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
+
+            <div className="flex items-center justify-center lg:justify-start gap-8 pt-8 animate-fade-in opacity-0" style={{ animationDelay: '1.1s', animationFillMode: 'forwards' }}>
+              <div className="flex flex-col items-center lg:items-start">
+                <span className="text-2xl font-bold text-foreground">5K+</span>
+                <span className="text-sm text-muted-foreground">Users</span>
+              </div>
+              <div className="h-10 w-px bg-border"></div>
+              <div className="flex flex-col items-center lg:items-start">
+                <span className="text-2xl font-bold text-foreground">10K+</span>
+                <span className="text-sm text-muted-foreground">Rides</span>
+              </div>
+              <div className="h-10 w-px bg-border"></div>
+              <div className="flex flex-col items-center lg:items-start">
+                <span className="text-2xl font-bold text-foreground">50+</span>
+                <span className="text-sm text-muted-foreground">Cities</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
@@ -121,7 +142,7 @@ export default function HomePage() {
               Experience the most convenient and social way to travel to your favorite events
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
@@ -153,7 +174,7 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {recentEvents.map((event) => (
                 <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -197,7 +218,7 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="grid gap-4">
               {recentRides.map((ride) => (
                 <Card key={ride.id} className="hover:shadow-lg transition-shadow duration-300">
@@ -215,7 +236,7 @@ export default function HomePage() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">Driver</p>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                           <div className="flex items-center text-gray-600 dark:text-gray-400">
                             <MapPin className="h-4 w-4 mr-2" />
@@ -231,7 +252,7 @@ export default function HomePage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <Button asChild>
                         <Link to={`/rides/${ride.id}`}>Book Now</Link>
                       </Button>
