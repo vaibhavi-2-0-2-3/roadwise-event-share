@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -20,6 +21,31 @@ import {
   Search, MapPin, Calendar, Car, Clock, CalendarClock, Plus, SlidersHorizontal, Users, Luggage
 } from 'lucide-react';
 
+// Define a simplified type for our ride data
+type RideData = {
+  id: string;
+  driver_id: string;
+  origin: string;
+  destination: string;
+  departure_time: string;
+  available_seats: number;
+  seats: number;
+  price_per_seat: number | null;
+  status: string | null;
+  event_id: string | null;
+  profiles: {
+    id: string;
+    name: string;
+    image_url: string | null;
+    bio: string | null;
+  } | null;
+  events: {
+    id: string;
+    title: string;
+    location: string;
+  } | null;
+};
+
 export default function RidesPage() {
   useRideStatusUpdater();
   const { user } = useAuth();
@@ -40,9 +66,9 @@ export default function RidesPage() {
   const [showCreateRide, setShowCreateRide] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
-  const { data: rides, isLoading } = useQuery({
+  const { data: rides, isLoading } = useQuery<RideData[]>({
     queryKey: ['rides', debouncedFrom, debouncedTo, debouncedDate],
-    queryFn: async () => {
+    queryFn: async (): Promise<RideData[]> => {
       let query = supabase
         .from('rides')
         .select(`
@@ -80,7 +106,7 @@ export default function RidesPage() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return (data || []) as RideData[];
     }
   });
 
@@ -90,6 +116,13 @@ export default function RidesPage() {
     } else {
       setShowCreateRide(true);
     }
+  };
+
+  // Helper function to handle checkbox changes
+  const handleCheckboxChange = (setter: (value: boolean) => void) => {
+    return (checked: boolean | "indeterminate") => {
+      setter(checked === true);
+    };
   };
 
   const activeRides = rides?.filter(r =>
@@ -229,7 +262,7 @@ export default function RidesPage() {
                   <Checkbox 
                     id="maxComfort" 
                     checked={maxComfort}
-                    onCheckedChange={setMaxComfort}
+                    onCheckedChange={handleCheckboxChange(setMaxComfort)}
                   />
                   <label htmlFor="maxComfort" className="text-sm">Max 2 people in back seat</label>
                 </div>
@@ -243,7 +276,7 @@ export default function RidesPage() {
                     <Checkbox 
                       id="music" 
                       checked={allowMusic}
-                      onCheckedChange={setAllowMusic}
+                      onCheckedChange={handleCheckboxChange(setAllowMusic)}
                     />
                     <label htmlFor="music" className="text-sm">Music</label>
                   </div>
@@ -251,7 +284,7 @@ export default function RidesPage() {
                     <Checkbox 
                       id="pets" 
                       checked={allowPets}
-                      onCheckedChange={setAllowPets}
+                      onCheckedChange={handleCheckboxChange(setAllowPets)}
                     />
                     <label htmlFor="pets" className="text-sm">Animals</label>
                   </div>
@@ -259,7 +292,7 @@ export default function RidesPage() {
                     <Checkbox 
                       id="children" 
                       checked={allowChildren}
-                      onCheckedChange={setAllowChildren}
+                      onCheckedChange={handleCheckboxChange(setAllowChildren)}
                     />
                     <label htmlFor="children" className="text-sm">Children</label>
                   </div>
