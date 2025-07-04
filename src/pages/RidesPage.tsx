@@ -47,7 +47,6 @@ export default function RidesPage() {
             id, title, location
           )
         `)
-        .is('event_id', null) // Only show rides not associated with events
         .order('departure_time', { ascending: true });
 
       if (debouncedFrom) {
@@ -110,20 +109,19 @@ export default function RidesPage() {
         </div>
       </AnimatedBanner>
 
+
+
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
+
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Find Your Ride
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Connect with drivers heading to your destination
+              <p className="text-sm text-gray-700 dark:text-blue-400 mt-2">
+                Have a car? Offer a ride to someone going your way.
               </p>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={handleCreateRide}
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8"
@@ -134,12 +132,35 @@ export default function RidesPage() {
           </div>
         </div>
 
-        {/* Search and filters */}
-        <Card className="mb-8 border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+
+        <Card className="bg-gradient-card border border-border/50 mb-8">
+          <CardHeader>
+            <CardTitle className="text-foreground">Search Rides</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="From"
+                  value={searchFrom}
+                  onChange={(e) => setSearchFrom(e.target.value)}
+                  className="pl-10 bg-input border border-border"
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="To"
+                  value={searchTo}
+                  onChange={(e) => setSearchTo(e.target.value)}
+                  className="pl-10 bg-input border border-border"
+                />
+              </div>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   type="date"
                   value={searchDate}
@@ -147,25 +168,14 @@ export default function RidesPage() {
                   className="pl-10 bg-input border border-border"
                 />
               </div>
-              <Button className="bg-primary/90 text-white hover:bg-primary/60 transition-colors flex items-center justify-center">
+              <Button disabled className="bg-primary text-white hover:bg-primary/80">
                 <Search className="w-4 h-4 mr-2" />
                 Search
               </Button>
             </div>
-
-
           </CardContent>
-
-
         </Card>
 
-        <div className='mb-4'>
-          <Button onClick={handleCreateRide} className="md:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Offer a Ride
-          </Button>
-
-        </div>
         {/* Tabs and Ride List */}
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8 bg-white dark:bg-gray-800 border-0 shadow-sm">
@@ -188,9 +198,7 @@ export default function RidesPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center pt-4 text-s font-medium text-gray-600 dark:text-gray-300">
-                No active rides found.
-              </p>
+              <p className="text-center text-sm pt-4 font-medium text-gray-600 dark:text-gray-300">No active rides found.</p>
             )}
           </TabsContent>
 
@@ -202,7 +210,7 @@ export default function RidesPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center pt-4 text-s font-medium text-gray-600 dark:text-gray-300">No upcoming rides.</p>
+              <p className="text-center text-sm pt-4 font-medium text-gray-600 dark:text-gray-300">No upcoming rides.</p>
             )}
           </TabsContent>
 
@@ -214,7 +222,7 @@ export default function RidesPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center pt-4 text-s font-medium text-gray-600 dark:text-gray-300">No completed rides.</p>
+              <p className="text-center text-sm pt-4 font-medium text-gray-600 dark:text-gray-300">No completed rides.</p>
             )}
           </TabsContent>
         </Tabs>
