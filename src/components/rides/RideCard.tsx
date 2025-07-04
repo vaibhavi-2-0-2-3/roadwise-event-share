@@ -22,7 +22,11 @@ export function RideCard({ ride }: RideCardProps) {
           <div className="flex-1 space-y-4">
             {/* Time */}
             <div className="text-lg font-semibold">
-              Today at {departureDate.toLocaleTimeString('en-US', {
+              {departureDate.toLocaleDateString('en-US', { 
+                weekday: 'short',
+                month: 'short', 
+                day: 'numeric'
+              })} at {departureDate.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
               })}
@@ -50,12 +54,6 @@ export function RideCard({ ride }: RideCardProps) {
                 </div>
               </div>
             </div>
-
-            {/* See route on map button */}
-            <Button variant="outline" size="sm" className="text-blue-600 border-blue-200">
-              <Navigation className="h-4 w-4 mr-2" />
-              See route on map
-            </Button>
           </div>
 
           {/* Center - Driver Info */}
@@ -83,7 +81,9 @@ export function RideCard({ ride }: RideCardProps) {
           {/* Right Side - Booking Info */}
           <div className="flex flex-col items-end space-y-4 min-w-[200px]">
             <div className="text-right">
-              <div className="text-sm text-gray-500">1 seat available</div>
+              <div className="text-sm text-gray-500">
+                {ride.available_seats} seat{ride.available_seats !== 1 ? 's' : ''} available
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={ride.profiles?.image_url} />
@@ -116,18 +116,17 @@ export function RideCard({ ride }: RideCardProps) {
           </div>
         </div>
 
-        {/* Bottom Row - Preferences */}
-        <div className="flex items-center gap-4 mt-6 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-green-600">
-            <span className="text-sm">✓ Music</span>
+        {/* Bottom Row - Available Seats */}
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+          <div className="text-sm text-gray-500">
+            Departure: {departureDate.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
           </div>
-          <div className="flex items-center gap-2 text-red-600">
-            <span className="text-sm">✗ Pets</span>
-          </div>
-          <div className="flex items-center gap-2 text-green-600">
-            <span className="text-sm">✓ Children</span>
-          </div>
-          <div className="ml-auto text-sm text-gray-500">
+          <div className="text-sm text-gray-500">
             <Users className="h-4 w-4 inline mr-1" />
             {ride.available_seats} seats left
           </div>

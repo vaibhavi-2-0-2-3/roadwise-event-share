@@ -6,14 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Calendar, MapPin, Users, Plus, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { AnimatedBanner } from '@/components/shared/AnimatedBanner';
 
 export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('All Events');
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['events', searchTerm],
@@ -43,14 +41,12 @@ export default function EventsPage() {
     return { label: 'Upcoming', color: 'bg-orange-500' };
   };
 
-  const eventCategories = ['All Events', 'Music', 'Entertainment', 'Food', 'Cultural', 'Film'];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <AnimatedBanner
-        title="Upcoming Events"
-        subtitle="Discover amazing events in Goa and find carpool partners to share the journey"
-        gradient="from-indigo-600 via-purple-600 to-pink-600"
+        title="Discover Events in Goa"
+        subtitle="Find amazing events and connect with fellow travelers for shared rides"
+        gradient="from-blue-500 via-purple-500 to-pink-500"
       >
         <div className="mt-8">
           <div className="relative max-w-lg mx-auto">
@@ -66,23 +62,6 @@ export default function EventsPage() {
       </AnimatedBanner>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Category Tabs */}
-        <div className="mb-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6 bg-white shadow-lg border-0 h-12">
-              {eventCategories.map((category) => (
-                <TabsTrigger 
-                  key={category}
-                  value={category}
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-medium"
-                >
-                  {category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-
         {/* Events Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -98,35 +77,31 @@ export default function EventsPage() {
             ))}
           </div>
         ) : events && events.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((event) => {
               const status = getEventStatus(event.event_date);
               return (
-                <Link key={event.id} to={`/events/${event.id}`}>
-                  <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group shadow-lg border-0 bg-white">
-                    <div className="aspect-video relative overflow-hidden">
-                      <img
-                        src={event.image_url || 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500'}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className={`${status.color} text-white border-0`}>
-                          {status.label}
-                        </Badge>
-                      </div>
-                      <div className="absolute bottom-4 right-4">
-                        <Badge className="bg-black/50 text-white border-0">
-                          entertainment
-                        </Badge>
-                      </div>
+                <Card key={event.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group shadow-md border-0 bg-white rounded-2xl">
+                  <div className="aspect-[4/3] relative overflow-hidden">
+                    <img
+                      src={event.image_url || 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500'}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className={`${status.color} text-white border-0 font-medium`}>
+                        {status.label}
+                      </Badge>
                     </div>
-                    <CardContent className="p-6">
-                      <h3 className="font-bold text-xl mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {event.title}
-                      </h3>
-                      
-                      <div className="space-y-3 text-sm text-gray-600 mb-4">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+                  <CardContent className="p-6">
+                    <h3 className="font-bold text-xl mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {event.title}
+                    </h3>
+                    
+                    <div className="space-y-3 text-sm text-gray-600 mb-6">
+                      <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-blue-600" />
                           <span className="font-medium">
@@ -138,33 +113,32 @@ export default function EventsPage() {
                             })}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-red-600" />
-                          <span className="line-clamp-1">{event.location}</span>
-                        </div>
                       </div>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-2">{event.location}</span>
+                      </div>
+                    </div>
 
-                      {event.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">
-                          {event.description}
-                        </p>
-                      )}
+                    {event.description && (
+                      <p className="text-sm text-gray-500 line-clamp-3 mb-6 leading-relaxed">
+                        {event.description}
+                      </p>
+                    )}
 
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-sm">89 attending</span>
-                          </div>
-                          <span className="text-2xl font-bold text-green-600">Free</span>
-                        </div>
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-sm text-green-600">89 attending</span>
+                      </div>
+                      <Link to={`/events/${event.id}`}>
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 px-6">
                           View Details
                         </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
