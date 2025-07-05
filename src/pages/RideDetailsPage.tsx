@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, MapPin, Clock, Users, DollarSign, Star, Shield, MessageCircle, Navigation } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,12 +16,15 @@ import { CalendarButton } from '@/components/rides/CalendarButton';
 import { RouteMapDialog } from '@/components/rides/RouteMapDialog';
 import { CompletedRideReview } from '@/components/rides/CompletedRideReview';
 import { PendingRequests } from '@/components/rides/PendingRequests';
+import { ConfirmedPassengers } from '@/components/rides/ConfirmedPassengers';
+import { RideChat } from '@/components/rides/RideChat';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 export default function RideDetailsPage() {
   const { rideId } = useParams();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showDriverChat, setShowDriverChat] = useState(false);
 
   const { data: ride, isLoading: rideLoading } = useQuery({
     queryKey: ['ride-details', rideId],
@@ -108,6 +111,10 @@ export default function RideDetailsPage() {
 
   const isDriverView = user?.id === ride.driver_id;
 
+  const handleMessagePassenger = (passengerId: string, passengerName: string) => {
+    setShowDriverChat(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -129,6 +136,14 @@ export default function RideDetailsPage() {
             {/* Driver's Pending Requests Section */}
             {isDriverView && (
               <PendingRequests rideId={ride.id} />
+            )}
+
+            {/* Driver's Confirmed Passengers Section */}
+            {isDriverView && (
+              <ConfirmedPassengers 
+                rideId={ride.id} 
+                onMessagePassenger={handleMessagePassenger}
+              />
             )}
 
             {/* Ride Details Card */}
@@ -240,10 +255,42 @@ export default function RideDetailsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      Message
-                    </Button>
+                    {/* Message button for passengers with confirmed booking */}
+                    {!isDriverView && existingBooking?.status === 'confirmed' && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Message
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
+                          </DialogHeader>
+                          <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    
+                    {/* Message button for drivers */}
+                    {isDriverView && (
+                      <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Chat
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Ride Chat</DialogTitle>
+                          </DialogHeader>
+                          <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    
                     <Link to={`/profile/${ride.driver_id}`}>
                       <Button variant="outline" size="sm">
                         View Profile
