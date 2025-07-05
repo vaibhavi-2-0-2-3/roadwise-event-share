@@ -19,6 +19,7 @@ import { PendingRequests } from '@/components/rides/PendingRequests';
 import { ConfirmedPassengers } from '@/components/rides/ConfirmedPassengers';
 import { RideChat } from '@/components/rides/RideChat';
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { RideStatusButton } from '@/components/rides/RideStatusButton';
 
 export default function RideDetailsPage() {
   const { rideId } = useParams();
@@ -48,7 +49,7 @@ export default function RideDetailsPage() {
         `)
         .eq('id', rideId)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -65,7 +66,7 @@ export default function RideDetailsPage() {
         .eq('ride_id', rideId)
         .eq('user_id', user.id)
         .maybeSingle();
-      
+
       if (error && error.code !== 'PGRST116') throw error;
       return data;
     },
@@ -128,9 +129,9 @@ export default function RideDetailsPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Weather Widget */}
-            <WeatherWidget 
-              date={ride.departure_time} 
-              location={ride.destination.split(',')[0]} 
+            <WeatherWidget
+              date={ride.departure_time}
+              location={ride.destination.split(',')[0]}
             />
 
             {/* Driver's Pending Requests Section */}
@@ -140,11 +141,15 @@ export default function RideDetailsPage() {
 
             {/* Driver's Confirmed Passengers Section */}
             {isDriverView && (
-              <ConfirmedPassengers 
-                rideId={ride.id} 
-                onMessagePassenger={handleMessagePassenger}
-              />
+              <>
+                <ConfirmedPassengers
+                  rideId={ride.id}
+                  onMessagePassenger={handleMessagePassenger}
+                />
+                <RideStatusButton ride={ride} />
+              </>
             )}
+
 
             {/* Ride Details Card */}
             <Card className="shadow-lg border-0">
@@ -161,8 +166,8 @@ export default function RideDetailsPage() {
                       <p className="font-semibold text-lg">{ride.origin}</p>
                     </div>
                   </div>
-                  <RouteMapDialog 
-                    origin={ride.origin} 
+                  <RouteMapDialog
+                    origin={ride.origin}
                     destination={ride.destination}
                     trigger={
                       <Button variant="outline" size="sm">
@@ -182,8 +187,8 @@ export default function RideDetailsPage() {
                       <p className="font-semibold text-lg">{ride.destination}</p>
                     </div>
                   </div>
-                  <RouteMapDialog 
-                    origin={ride.origin} 
+                  <RouteMapDialog
+                    origin={ride.origin}
                     destination={ride.destination}
                     trigger={
                       <Button variant="outline" size="sm">
@@ -219,8 +224,8 @@ export default function RideDetailsPage() {
                 </div>
 
                 {/* Full Route Button */}
-                <RouteMapDialog 
-                  origin={ride.origin} 
+                <RouteMapDialog
+                  origin={ride.origin}
                   destination={ride.destination}
                   trigger={
                     <Button variant="outline" className="w-full">
@@ -272,7 +277,7 @@ export default function RideDetailsPage() {
                         </DialogContent>
                       </Dialog>
                     )}
-                    
+
                     {/* Message button for drivers */}
                     {isDriverView && (
                       <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
@@ -290,7 +295,7 @@ export default function RideDetailsPage() {
                         </DialogContent>
                       </Dialog>
                     )}
-                    
+
                     <Link to={`/profile/${ride.driver_id}`}>
                       <Button variant="outline" size="sm">
                         View Profile
@@ -321,7 +326,7 @@ export default function RideDetailsPage() {
                     {ride.price_per_seat > 0 ? `$${ride.price_per_seat}` : 'Free'}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-blue-600" />
                   <span className="text-lg">Available seats</span>
@@ -330,8 +335,8 @@ export default function RideDetailsPage() {
 
                 <Separator />
 
-                <RideRequestButton 
-                  ride={ride} 
+                <RideRequestButton
+                  ride={ride}
                   existingBooking={existingBooking}
                   onShowAuth={() => setShowAuthDialog(true)}
                 />

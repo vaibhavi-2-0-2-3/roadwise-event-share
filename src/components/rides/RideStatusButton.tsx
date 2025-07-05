@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock } from 'lucide-react';
-import { markRideAsCompleted } from '@/utils/rideStatus';
+import { CheckCircle, Clock, Play } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -14,57 +13,76 @@ interface RideStatusButtonProps {
 export function RideStatusButton({ ride }: RideStatusButtonProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isCompleting, setIsCompleting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const completeMutation = useMutation({
-    mutationFn: () => markRideAsCompleted(ride.id, ride.driver_id, user?.id || ''),
-    onSuccess: () => {
-      toast.success('Ride marked as completed!');
-      queryClient.invalidateQueries({ queryKey: ['rides'] });
-      queryClient.invalidateQueries({ queryKey: ['ride-details'] });
-    },
-    onError: (error) => {
-      toast.error('Failed to complete ride');
-      console.error('Error completing ride:', error);
+  const isDriver = user?.id === ride.driver_id;
+
+  const updateStatus = async (newStatus: 'active' | 'in_progress' | 'completed') => {
+    if (!user || !isDriver) return;
+
+    // 1. Update ride status
+    const { error: rideError } = await supabase
+      .from('rides')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', ride.id);
+
+    if (rideError) throw rideError;
+
+    // 2. If completed, mark all confirmed bookings as completed
+    if (newStatus === 'completed') {
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('ride_id', ride.id)
+        .eq('status', 'confirmed');
+
+      if (bookingError) throw bookingError;
     }
-  });
-
-  const handleComplete = () => {
-    setIsCompleting(true);
-    completeMutation.mutate();
   };
 
-  // Don't show button if not the driver or ride is already completed
-  if (!user || user.id !== ride.driver_id || ride.status !== 'active') {
-    return null;
-  }
+  const mutation = useMutation({
+    mutationFn: updateStatus,
+    onSuccess: () => {
+      toast.success('✅ Ride status updated!');
+      queryClient.invalidateQueries({ queryKey: ['ride-details'] });
+      queryClient.invalidateQueries({ queryKey: ['rides'] });
+      queryClient.invalidateQueries({ queryKey: ['user-booking'] });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error('Failed to update ride status.');
+    },
+  });
 
-  // Only show if departure time has passed
-  const departureTime = new Date(ride.departure_time);
-  const now = new Date();
-  if (now < departureTime) {
-    return null;
-  }
+  if (!isDriver) return null;
 
   return (
-    <Button
-      onClick={handleComplete}
-      disabled={completeMutation.isPending || isCompleting}
-      variant="outline"
-      size="sm"
-      className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-    >
-      {completeMutation.isPending ? (
-        <>
-          <Clock className="h-4 w-4 mr-2 animate-spin" />
-          Completing...
-        </>
-      ) : (
-        <>
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Mark as Completed
-        </>
+    <div className="flex gap-4 mt-4">
+      {ride.status === 'active' && (
+        <Button
+          onClick={() => mutation.mutate('in_progress')}
+          disabled={mutation.isPending}
+          variant="outline"
+          size="sm"
+          className="bg-yellow-50 text-yellow-800 border-yellow-200"
+        >
+          <Play className="h-4 w-4 mr-2" />
+          Start Ride
+        </Button>
       )}
-    </Button>
+
+      {ride.status === 'in_progress' && (
+        <Button
+          onClick={() => mutation.mutate('completed')}
+          disabled={mutation.isPending}
+          variant="outline"
+          size="sm"
+          className="bg-green-50 text-green-800 border-green-200"
+        >
+          <CheckCircle className="h-4 w-4 mr-2" />
+          End Ride
+        </Button>
+      )}
+    </div>
   );
 }
