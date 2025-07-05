@@ -22,16 +22,16 @@ export function RideCard({ ride }: RideCardProps) {
           <div className="flex-1 space-y-4">
             {/* Time */}
             <div className="text-lg font-semibold">
-              {departureDate.toLocaleDateString('en-US', { 
+              {departureDate.toLocaleDateString('en-US', {
                 weekday: 'short',
-                month: 'short', 
+                month: 'short',
                 day: 'numeric'
               })} at {departureDate.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
               })}
             </div>
-            
+
             {/* Route */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -41,11 +41,11 @@ export function RideCard({ ride }: RideCardProps) {
                   <div className="text-sm text-gray-500">Pickup location</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3 ml-6">
                 <ArrowUpDown className="h-4 w-4 text-gray-400" />
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div>
@@ -58,7 +58,7 @@ export function RideCard({ ride }: RideCardProps) {
 
           {/* Center - Driver Info */}
           <div className="flex flex-col items-center space-y-3">
-            <Link 
+            <Link
               to={`/profile/${ride.driver_id}`}
               className="flex flex-col items-center hover:opacity-80 transition-opacity"
             >
@@ -110,7 +110,7 @@ export function RideCard({ ride }: RideCardProps) {
 
             <Link to={`/rides/${ride.id}`} className="w-full">
               <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                Start booking
+                View Ride
               </Button>
             </Link>
           </div>
