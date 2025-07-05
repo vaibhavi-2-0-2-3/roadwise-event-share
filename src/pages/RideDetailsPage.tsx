@@ -121,7 +121,10 @@ export default function RideDetailsPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Weather Widget */}
-            <WeatherWidget date={ride.departure_time} />
+            <WeatherWidget 
+              date={ride.departure_time} 
+              location={ride.destination.split(',')[0]} 
+            />
 
             {/* Driver's Pending Requests Section */}
             {isDriverView && (

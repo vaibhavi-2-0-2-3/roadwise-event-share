@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Users, MessageCircle } from 'lucide-react';
+import { Users, MessageCircle, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { RideChat } from './RideChat';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface RideRequestButtonProps {
   ride: any;
@@ -17,6 +19,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [seatsToBook, setSeatsToBook] = useState(1);
+  const [showChatDialog, setShowChatDialog] = useState(false);
 
   const requestRideMutation = useMutation({
     mutationFn: async (seats: number) => {
@@ -53,10 +56,24 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
     requestRideMutation.mutate(seatsToBook);
   };
 
+  const handleMessageClick = () => {
+    if (!user) {
+      onShowAuth();
+      return;
+    }
+    
+    if (!existingBooking || existingBooking.status === 'pending') {
+      toast.error('Please book the ride first to start chatting.');
+      return;
+    }
+    
+    setShowChatDialog(true);
+  };
+
   const isDriverView = user?.id === ride.driver_id;
   const isExpired = new Date(ride.departure_time) < new Date();
   const canRequestRide = user && !existingBooking && ride.available_seats > 0 && !isDriverView && !isExpired;
-  const chatEnabled = existingBooking?.status === 'confirmed';
+  const chatEnabled = existingBooking?.status === 'confirmed' || existingBooking?.status === 'completed';
 
   if (isDriverView) {
     return (
@@ -76,11 +93,17 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
       <div className="space-y-4">
         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+            {existingBooking.status === 'confirmed' || existingBooking.status === 'completed' ? (
+              <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+            ) : (
+              <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+            )}
             <span className="font-medium text-green-700 dark:text-green-300">
               {existingBooking.status === 'pending' 
                 ? `Request sent (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
-                : `Booked (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
+                : existingBooking.status === 'confirmed'
+                ? `Accepted ✅ (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
+                : `${existingBooking.status} (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
               }
             </span>
           </div>
@@ -89,12 +112,26 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
           </p>
         </div>
         
-        {chatEnabled && (
-          <Button variant="outline" className="w-full">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Message Driver
-          </Button>
-        )}
+        <Dialog open={showChatDialog} onOpenChange={setShowChatDialog}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={handleMessageClick}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Message Driver
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Chat with Driver</DialogTitle>
+            </DialogHeader>
+            {chatEnabled && (
+              <RideChat rideId={ride.id} driverId={ride.driver_id} />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
