@@ -1,12 +1,14 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Users, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Heart, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EventCardProps {
   event: any;
@@ -15,12 +17,79 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Check if user is already going to this event
+  const { data: isGoing } = useQuery({
+    queryKey: ['event-participant', event.id, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', event.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user
+  });
+
+  // Get participant count
+  const { data: participantCount } = useQuery({
+    queryKey: ['event-participants-count', event.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('event_participants')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', event.id);
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  // Join/Leave event mutation
+  const joinEventMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      if (isGoing) {
+        // Leave event
+        const { error } = await supabase
+          .from('event_participants')
+          .delete()
+          .eq('event_id', event.id)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        // Join event
+        const { error } = await supabase
+          .from('event_participants')
+          .insert({
+            event_id: event.id,
+            user_id: user.id
+          });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-participant', event.id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['event-participants-count', event.id] });
+    }
+  });
 
   const handleJoinEvent = () => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
+    joinEventMutation.mutate();
   };
 
   const isUpcoming = new Date(event.event_date) > new Date();
@@ -105,7 +174,7 @@ export function EventCard({ event }: EventCardProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {event.participant_count || 0} attending
+                    {participantCount || 0} going
                   </p>
                   <p className="text-xs text-gray-500">Participants</p>
                 </div>
@@ -123,9 +192,26 @@ export function EventCard({ event }: EventCardProps) {
               {isUpcoming && (
                 <Button 
                   onClick={handleJoinEvent}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                  disabled={joinEventMutation.isPending}
+                  className={`flex-1 ${
+                    isGoing 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  }`}
                 >
-                  Join Event
+                  {joinEventMutation.isPending ? (
+                    'Loading...'
+                  ) : isGoing ? (
+                    <>
+                      <Check className="h-4 w-4 mr-1" />
+                      Going
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-4 w-4 mr-1" />
+                      I'm Going
+                    </>
+                  )}
                 </Button>
               )}
             </div>

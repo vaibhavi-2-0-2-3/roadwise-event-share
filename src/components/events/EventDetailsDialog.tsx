@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, MapPin, Users, MessageCircle, Plus, Clock, Car } from 'lucide-react';
+import { Calendar, MapPin, Users, MessageCircle, Plus, Clock, Car, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { RideCard } from '@/components/rides/RideCard';
 import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
 import { EventChat } from './EventChat';
+import { EventWall } from './EventWall';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 interface EventDetailsDialogProps {
@@ -194,14 +195,18 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
 
             {/* Tabs */}
             <Tabs defaultValue="rides" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="rides" className="flex items-center">
                   <Car className="h-4 w-4 mr-2" />
-                  Available Rides ({rides?.length || 0})
+                  Rides ({rides?.length || 0})
+                </TabsTrigger>
+                <TabsTrigger value="wall" className="flex items-center">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Ride Wall
                 </TabsTrigger>
                 <TabsTrigger value="chat" className="flex items-center">
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Event Chat
+                  Group Chat
                 </TabsTrigger>
               </TabsList>
               
@@ -233,6 +238,10 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                     </Button>
                   </div>
                 )}
+              </TabsContent>
+              
+              <TabsContent value="wall" className="mt-6">
+                <EventWall eventId={event.id} />
               </TabsContent>
               
               <TabsContent value="chat" className="mt-6">

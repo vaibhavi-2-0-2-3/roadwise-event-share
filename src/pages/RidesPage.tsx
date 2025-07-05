@@ -69,7 +69,8 @@ export default function RidesPage() {
       }
 
       if (debouncedDate) {
-        query = query.eq('departure_date', debouncedDate);
+        query = query.gte('departure_time', `${debouncedDate}T00:00:00`)
+                     .lt('departure_time', `${debouncedDate}T23:59:59`);
       }
 
       const { data, error } = await query;
