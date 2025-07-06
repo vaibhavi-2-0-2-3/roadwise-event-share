@@ -1,26 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, Play } from 'lucide-react';
+import { CheckCircle, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface RideStatusButtonProps {
-  ride: any;
+  ride: {
+    id: string;
+    status: 'active' | 'in_progress' | 'completed' | 'cancelled';
+    driver_id: string;
+  };
 }
 
 export function RideStatusButton({ ride }: RideStatusButtonProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const isDriver = user?.id === ride.driver_id;
+  const [localStatus, setLocalStatus] = useState(ride.status);
+  const [anyPaid, setAnyPaid] = useState(false); // ✅ Only one flag needed now
 
-  const updateStatus = async (newStatus: 'active' | 'in_progress' | 'completed') => {
+  useEffect(() => {
+    const checkAnyPaid = async () => {
+      if (isDriver && ride.status === 'active') {
+        const { data: bookings, error } = await supabase
+          .from('bookings')
+          .select('payment_status')
+          .eq('ride_id', ride.id)
+          .eq('status', 'confirmed');
+
+        if (error) {
+          console.error('Error fetching bookings:', error);
+          return;
+        }
+
+        const somePaid = bookings.some((b) => b.payment_status === 'paid');
+        setAnyPaid(somePaid);
+      }
+    };
+
+    checkAnyPaid();
+  }, [ride.id, ride.status, isDriver]);
+
+  const updateStatus = async (newStatus: 'in_progress' | 'completed') => {
     if (!user || !isDriver) return;
 
-    // 1. Update ride status
+    if (newStatus === 'in_progress') {
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('payment_status')
+        .eq('ride_id', ride.id)
+        .eq('status', 'confirmed');
+
+      if (bookingsError) throw bookingsError;
+      if (!bookings || bookings.length === 0) {
+        toast.error('❌ No confirmed passengers found.');
+        return;
+      }
+
+      const somePaid = bookings.some((b) => b.payment_status === 'paid');
+      if (!somePaid) {
+        toast.error('❌ At least one passenger must pay before starting the ride.');
+        return;
+      }
+    }
+
     const { error: rideError } = await supabase
       .from('rides')
       .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -28,7 +73,6 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
 
     if (rideError) throw rideError;
 
-    // 2. If completed, mark all confirmed bookings as completed
     if (newStatus === 'completed') {
       const { error: bookingError } = await supabase
         .from('bookings')
@@ -38,6 +82,8 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
 
       if (bookingError) throw bookingError;
     }
+
+    setLocalStatus(newStatus); // ✅ Update local UI
   };
 
   const mutation = useMutation({
@@ -58,7 +104,7 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
 
   return (
     <div className="flex gap-4 mt-4">
-      {ride.status === 'active' && (
+      {localStatus === 'active' && anyPaid && (
         <Button
           onClick={() => mutation.mutate('in_progress')}
           disabled={mutation.isPending}
@@ -71,7 +117,7 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
         </Button>
       )}
 
-      {ride.status === 'in_progress' && (
+      {localStatus === 'in_progress' && (
         <Button
           onClick={() => mutation.mutate('completed')}
           disabled={mutation.isPending}

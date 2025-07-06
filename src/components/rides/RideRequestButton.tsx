@@ -20,11 +20,13 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
   const queryClient = useQueryClient();
   const [seatsToBook, setSeatsToBook] = useState(1);
   const [showChatDialog, setShowChatDialog] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
 
   const requestRideMutation = useMutation({
     mutationFn: async (seats: number) => {
       if (!user) throw new Error('Must be logged in');
-      
+
       const { error } = await supabase
         .from('bookings')
         .insert({
@@ -33,7 +35,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
           seats_booked: seats,
           status: 'pending'
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -61,12 +63,12 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
       onShowAuth();
       return;
     }
-    
+
     if (!existingBooking || existingBooking.status === 'pending') {
       toast.error('Please book the ride first to start chatting.');
       return;
     }
-    
+
     setShowChatDialog(true);
   };
 
@@ -93,17 +95,38 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
       <div className="space-y-4">
         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
           <div className="flex items-center gap-2">
-            {existingBooking.status === 'confirmed' || existingBooking.status === 'completed' ? (
-              <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-            ) : (
-              <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+            {existingBooking.status === 'confirmed' && existingBooking.payment_status !== 'paid' && (
+              <div className="space-y-2">
+                <p className="text-yellow-600 text-sm">🚧 Payment pending</p>
+                <Button
+                  className="w-full bg-yellow-500 text-white hover:bg-yellow-600"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from('bookings')
+                      .update({ payment_status: 'paid', updated_at: new Date().toISOString() })
+                      .eq('id', existingBooking.id);
+
+                    if (!error) {
+                      toast.success("✅ Payment successful");
+                      setShowPayment(false);
+                      queryClient.invalidateQueries({ queryKey: ['user-booking'] });
+                      queryClient.invalidateQueries({ queryKey: ['ride-details'] });
+                    } else {
+                      toast.error("❌ Payment failed");
+                    }
+                  }}
+                >
+                  Pay Now ₹100
+                </Button>
+              </div>
             )}
+
             <span className="font-medium text-green-700 dark:text-green-300">
-              {existingBooking.status === 'pending' 
+              {existingBooking.status === 'pending'
                 ? `Request sent (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
                 : existingBooking.status === 'confirmed'
-                ? `Accepted ✅ (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
-                : `${existingBooking.status} (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
+                  ? `Accepted ✅ (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
+                  : `${existingBooking.status} (${existingBooking.seats_booked} seat${existingBooking.seats_booked > 1 ? 's' : ''})`
               }
             </span>
           </div>
@@ -111,11 +134,11 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
             Status: {existingBooking.status}
           </p>
         </div>
-        
+
         <Dialog open={showChatDialog} onOpenChange={setShowChatDialog}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
               onClick={handleMessageClick}
             >
@@ -141,8 +164,8 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="font-medium">Seats to request:</span>
-          <select 
-            value={seatsToBook} 
+          <select
+            value={seatsToBook}
             onChange={(e) => setSeatsToBook(Number(e.target.value))}
             className="px-3 py-2 border rounded-md bg-background"
           >
@@ -151,8 +174,8 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
             ))}
           </select>
         </div>
-        <Button 
-          onClick={handleRequestRide} 
+        <Button
+          onClick={handleRequestRide}
           disabled={requestRideMutation.isPending}
           size="lg"
           className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg py-6"
