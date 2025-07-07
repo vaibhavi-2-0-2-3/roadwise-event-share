@@ -1,3 +1,4 @@
+
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, MapPin, Clock, Users, DollarSign, Star, Shield, MessageCircle, Navigation } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Users, DollarSign, Star, Shield, MessageCircle, Navigation, Calendar, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { RideRequestButton } from '@/components/rides/RideRequestButton';
@@ -19,17 +20,13 @@ import { ConfirmedPassengers } from '@/components/rides/ConfirmedPassengers';
 import { RideChat } from '@/components/rides/RideChat';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { RideStatusButton } from '@/components/rides/RideStatusButton';
-import banner from '@/assets/details-banner-img.png';
-import { ChevronDown, ChevronUp, Car } from 'lucide-react';
 import RideLiveTracker from '@/components/liveTracking/RideLiveTracker';
-
 
 export default function RideDetailsPage() {
   const { rideId } = useParams();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showDriverChat, setShowDriverChat] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const { data: ride, isLoading: rideLoading } = useQuery({
     queryKey: ['ride-details', rideId],
@@ -79,14 +76,14 @@ export default function RideDetailsPage() {
 
   if (rideLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-1/4"></div>
-            <div className="h-80 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 h-96 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-              <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+            <div className="h-8 bg-blue-100 rounded-xl w-1/4"></div>
+            <div className="h-64 bg-blue-100 rounded-2xl"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 h-96 bg-blue-100 rounded-2xl"></div>
+              <div className="h-96 bg-blue-100 rounded-2xl"></div>
             </div>
           </div>
         </div>
@@ -96,16 +93,21 @@ export default function RideDetailsPage() {
 
   if (!ride) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="container mx-auto px-4 py-8">
-          <Card className="text-center py-12 border-0 shadow-sm">
+          <Card className="text-center py-16 bg-white shadow-lg rounded-2xl border-0">
             <CardContent>
-              <h2 className="text-2xl font-bold mb-2">Ride Not Found</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The ride you're looking for doesn't exist.
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Navigation className="h-8 w-8 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2 text-gray-900">Ride Not Found</h2>
+              <p className="text-gray-600 mb-6">
+                The ride you're looking for doesn't exist or has been removed.
               </p>
               <Link to="/rides">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600">Browse Rides</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105">
+                  Browse Available Rides
+                </Button>
               </Link>
             </CardContent>
           </Card>
@@ -121,42 +123,60 @@ export default function RideDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* Hero Banner with Illustration */}
-      <div
-        className="relative bg-cover bg-center bg-no-repeat border-b border-border/50"
-        style={{
-          backgroundImage: `url(${banner})`,
-          height: '220px',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-white/50 dark:from-black/80 dark:via-black/60 dark:to-black/40" />
-        <div className="container mx-auto px-4 py-10 relative z-10">
-          <div className="flex flex-col items-start">
-            <Link
-              to="/rides"
-              className="inline-flex items-center gap-2 text hover:text-foreground mb-3 font-medium transition-colors group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              Back to rides
-            </Link>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white">
+        <div className="container mx-auto px-4 py-8">
+          <Link
+            to="/rides"
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 font-medium transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back to rides
+          </Link>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
-              Ride Details
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Everything you need to know about this journey
-            </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold mb-2">
+                {ride.origin.split(',')[0]} → {ride.destination.split(',')[0]}
+              </h1>
+              <p className="text-blue-100 text-lg">
+                {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })} at {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+            
+            {ride.status && (
+              <Badge 
+                variant={ride.status === 'active' ? 'default' : 'secondary'}
+                className={`px-4 py-2 text-sm font-semibold rounded-full ${
+                  ride.status === 'active' 
+                    ? 'bg-green-500 text-white' 
+                    : ride.status === 'in_progress'
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-500 text-white'
+                }`}
+              >
+                {ride.status === 'active' ? 'Available' : 
+                 ride.status === 'in_progress' ? 'In Progress' : 
+                 ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
 
-
       <div className="container mx-auto px-4 py-8">
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Weather Widget */}
             <WeatherWidget
               date={ride.departure_time}
@@ -169,9 +189,10 @@ export default function RideDetailsPage() {
             )}
 
             <RideStatusButton ride={ride} />
+
             {ride.status === 'in_progress' && (
               <RideLiveTracker
-                currentUserId={user.id}
+                currentUserId={user?.id}
                 participants={[
                   { userId: ride.driver_id, name: ride.profiles?.name, rideId: ride.id },
                   ...(existingBooking?.status === 'confirmed'
@@ -182,160 +203,195 @@ export default function RideDetailsPage() {
               />
             )}
 
-
-
-            {/* Ride Details Card */}
-            <Card className="border border-black bg-white text-black shadow-none rounded-none">
-              <CardHeader className="border-b border-black px-6 py-4">
-                <CardTitle className="text-xl font-bold flex items-center gap-3">
-                  <Navigation className="h-5 w-5" />
-                  Journey Information
+            {/* Journey Details Card */}
+            <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                <CardTitle className="text-xl font-bold flex items-center gap-3 text-blue-900">
+                  <Navigation className="h-6 w-6" />
+                  Journey Details
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-6 p-6">
-                {/* Journey Summary */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-base">
-                  {/* Origin */}
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-black" />
+              <CardContent className="p-6 space-y-6">
+                {/* Route Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* From */}
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-700 uppercase tracking-wide">From</span>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900">{ride.origin}</p>
+                  </div>
+
+                  {/* To */}
+                  <div className="bg-red-50 rounded-xl p-4 border border-red-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-red-700 uppercase tracking-wide">To</span>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900">{ride.destination}</p>
+                  </div>
+                </div>
+
+                {/* Departure Time */}
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700 uppercase tracking-wide">Departure</span>
+                  </div>
+                  <div className="flex items-center gap-4">
                     <div>
-                      <p className="text-sm uppercase text-muted-foreground font-medium">From</p>
-                      <p className="text-lg font-bold">{ride.origin}</p>
-                    </div>
-                  </div>
-
-                  {/* Arrow */}
-                  <div className="flex items-center justify-center w-full my-2">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
-                      <Car className="h-5 w-5 text-muted-foreground" />
-                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center w-full my-2">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
-                      <Car className="h-5 w-5 text-muted-foreground" />
-                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                    </div>
-                  </div>
-
-                  {/* Destination */}
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-black" />
-                    <div>
-                      <p className="text-sm uppercase text-muted-foreground font-medium">To</p>
-                      <p className="text-lg font-bold">{ride.destination}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Departure Info */}
-                <div className="flex items-center gap-3 pt-2 border-t border-dashed border-muted">
-                  <Clock className="h-5 w-5 text-black" />
-                  <div>
-                    <p className="text-sm uppercase text-muted-foreground font-medium mb-1">Departure</p>
-                    <p className="text-base font-semibold text-black">
-                      {new Date(ride.departure_time).toLocaleDateString('en-IN', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </p>
-                    <p className="text-xl font-bold text-black">
-                      {new Date(ride.departure_time).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </p>
-                  </div>
-                </div>
+                <Separator />
 
-                {/* Route Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full border border-black rounded-none h-12 text-base font-semibold hover:bg-muted"
-                  onClick={() => {
-                    const url = `https://www.google.com/maps/dir/${encodeURIComponent(ride.origin)}/${encodeURIComponent(ride.destination)}`;
-                    window.open(url, '_blank');
-                  }}
-                >
-                  <Navigation className="h-4 w-4 mr-2" />
-                  View Full Route on Google Maps
-                </Button>
+                {/* Google Maps Button */}
+                <div className="text-center">
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg"
+                    onClick={() => {
+                      const url = `https://www.google.com/maps/dir/${encodeURIComponent(ride.origin)}/${encodeURIComponent(ride.destination)}`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <Navigation className="h-5 w-5 mr-2" />
+                    View Route on Google Maps
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-
-
-
-
-
-
-
-
-
-
-
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Calendar */}
-            <Card className="bg-white dark:bg-black border border-black dark:border-white rounded-none shadow-none w-full max-w-xs">
-              <CardContent className="p-3 text-center space-y-2">
-                <h3 className="text-base font-bold text-black dark:text-white">Never miss your ride</h3>
+          <div className="space-y-6">
+            {/* Driver Card - Clickable */}
+            <Link to={`/profile/${ride.driver_id}`}>
+              <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-[1.02]">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
+                    <Users className="h-5 w-5" />
+                    Your Driver
+                  </CardTitle>
+                </CardHeader>
 
-                <CalendarButton
-                  ride={ride}
-                  className="mt-2 bg-white text-black text-xs font-semibold py-1 px-3 border border-black rounded-none hover:bg-[#ff4da3] hover:text-white transition-all"
-                />
-
-              </CardContent>
-            </Card>
-
-
-            {/* Price and Booking */}
-            <Card
-              className="border border-dashed border-black bg-white text-black rounded-none transition-all duration-200"
-            >
-              <CardContent className="p-4 space-y-6">
-                {/* Price Card */}
-                <div className="flex items-center justify-between p-3 border border-black bg-white rounded-none transition-all duration-200 hover:border-2 hover:border-[#ff4da3]">
-
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 border border-black">
-                      <span className="text-sm font-bold">₹</span>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="relative">
+                      <Avatar className="h-16 w-16 border-2 border-blue-200">
+                        <AvatarImage src={ride.profiles?.image_url} />
+                        <AvatarFallback className="bg-blue-600 text-white text-lg font-bold">
+                          {ride.profiles?.name?.charAt(0) || 'D'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
-                    <span className="text-sm font-semibold">Price per seat</span>
+
+                    <div className="flex-1">
+                      <h3 className="font-bold text-xl text-gray-900">{ride.profiles?.name}</h3>
+                      <p className="text-sm text-blue-600 font-medium">Verified Driver</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-full">
+                          <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                          <span className="text-xs font-semibold text-yellow-700">4.8</span>
+                        </div>
+                        <span className="text-xs text-gray-500">(127 reviews)</span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-lg font-bold">
-                    {ride.price_per_seat > 0 ? `₹${ride.price_per_seat}` : 'Free'}
-                  </span>
+
+                  {/* Chat Button for confirmed passengers */}
+                  {!isDriverView && existingBooking?.status === 'confirmed' && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Message Driver
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
+                        </DialogHeader>
+                        <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
+                  {/* Driver Chat for driver view */}
+                  {isDriverView && (
+                    <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Chat with Passengers
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Ride Chat</DialogTitle>
+                        </DialogHeader>
+                        <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Price and Booking Card */}
+            <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden">
+              <CardContent className="p-6 space-y-4">
+                {/* Price Display */}
+                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <DollarSign className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-semibold text-gray-900">Price per seat</span>
+                    </div>
+                    <span className="text-2xl font-bold text-green-600">
+                      {ride.price_per_seat > 0 ? `₹${ride.price_per_seat}` : 'Free'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Seats Available */}
-                <div className="flex items-center justify-between p-3 border border-black bg-white rounded-none transition-all duration-200 hover:border-2 hover:border-[#ff4da3]">
-
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 border border-black">
-                      <Users className="h-4 w-4 text-black" />
+                {/* Available Seats */}
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-semibold text-gray-900">Available seats</span>
                     </div>
-                    <span className="text-sm font-semibold">Available seats</span>
+                    <span className="text-2xl font-bold text-blue-600">{ride.available_seats}</span>
                   </div>
-                  <span className="text-lg font-bold">{ride.available_seats}</span>
                 </div>
 
-                {/* Dashed Line Separator */}
-                <div className="border-t border-dashed border-black my-2" />
+                <Separator />
 
                 {/* Request Button */}
                 <RideRequestButton
@@ -351,149 +407,54 @@ export default function RideDetailsPage() {
               </CardContent>
             </Card>
 
-
-
-            {/* Driver Card */}
-            <Card className="border border-black bg-white text-black shadow-none rounded-none">
-              <CardHeader className="border-b border-black px-6 py-4">
-                <CardTitle className="text-xl font-bold flex items-center gap-3">
-                  <Users className="h-5 w-5" />
-                  Your Driver
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-md">
-                  {/* Avatar + Info */}
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <Avatar className="h-16 w-16 border border-black">
-                        <AvatarImage src={ride.profiles?.image_url} />
-                        <AvatarFallback className="bg-black text-white text-lg font-bold">
-                          {ride.profiles?.name?.charAt(0) || 'D'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-lg">{ride.profiles?.name}</h3>
-                      <p className="text-sm text-muted-foreground">Verified Driver</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 rounded-full">
-                          <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                          <span className="text-xs font-semibold text-yellow-700">4.8</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">(127 reviews)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Buttons on the Right */}
-                  <div className="flex flex-col gap-2 items-end">
-                    {isDriverView ? (
-                      <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            Chat
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Ride Chat</DialogTitle>
-                          </DialogHeader>
-                          <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                        </DialogContent>
-                      </Dialog>
-                    ) : (
-                      existingBooking?.status === 'confirmed' && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              Message
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
-                            </DialogHeader>
-                            <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                          </DialogContent>
-                        </Dialog>
-                      )
-                    )}
-
-                    <Link to={`/profile/${ride.driver_id}`}>
-                      <Button variant="secondary" size="sm" className="rounded-md">
-                        View Profile
-                      </Button>
-                    </Link>
-                  </div>
+            {/* Calendar Card */}
+            <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden">
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Calendar className="h-6 w-6 text-blue-600" />
                 </div>
+                <h3 className="font-bold text-gray-900">Never miss your ride</h3>
+                <CalendarButton
+                  ride={ride}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-105"
+                />
               </CardContent>
             </Card>
 
-
-
-
-
-
-
             {/* Driver's Confirmed Passengers Section */}
-
             {isDriverView && (
-              <>
-                <CardTitle className="flex items-center gap-2 text-base font-semibold text-black">
-                  <Users className="h-5 w-5" />
-                  Confirmed Passengers
-                </CardTitle>
-                <ConfirmedPassengers
-                  rideId={ride.id}
-                  onMessagePassenger={handleMessagePassenger}
-                />
-
-              </>
+              <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
+                    <Users className="h-5 w-5" />
+                    Confirmed Passengers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <ConfirmedPassengers
+                    rideId={ride.id}
+                    onMessagePassenger={handleMessagePassenger}
+                  />
+                </CardContent>
+              </Card>
             )}
 
-            {/* Secure Payment Info */}
-            <Card className="border border-black bg-white text-black shadow-none p-4 rounded-none space-y-4">
-              <div
-                className="flex items-center justify-between cursor-pointer"
-                onClick={() => setOpen(!open)}
-              >
-                <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5" />
-                  <h3 className="font-bold text-base">Secure Online Payment</h3>
+            {/* Security Card */}
+            <Card className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-green-900">Secure & Safe</h3>
                 </div>
-                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </div>
-
-              {open && (
-                <div className="text-sm space-y-4 pt-1">
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold">Payment</span>
-                    <p className="text-muted-foreground">
-                      The money is first transferred to the driver 24 hours after ride departure.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold">Guarantee</span>
-                    <p className="text-muted-foreground">
-                      If the ride is cancelled, we will automatically delete your payment.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold">Secure</span>
-                    <p className="text-muted-foreground">
-                      See ratings and reviews before you book.
-                    </p>
-                  </div>
+                <div className="space-y-2 text-sm text-green-800">
+                  <p>✓ Verified drivers only</p>
+                  <p>✓ Secure payment processing</p>
+                  <p>✓ 24/7 customer support</p>
+                  <p>✓ Full refund if cancelled</p>
                 </div>
-              )}
+              </CardContent>
             </Card>
           </div>
         </div>
