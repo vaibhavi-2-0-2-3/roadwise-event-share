@@ -69,12 +69,25 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Brand colors
+        // Blue Brand Colors
         brand: {
-          primary: "#ff4da3",
-          secondary: "#6366f1",
-          accent: "#06d6a0",
-        }
+          primary: "#3B82F6",
+          secondary: "#1E40AF",
+          accent: "#06B6D4",
+        },
+        // Blue Palette
+        blue: {
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          200: "#BFDBFE",
+          300: "#93C5FD",
+          400: "#60A5FA",
+          500: "#3B82F6",
+          600: "#2563EB",
+          700: "#1D4ED8",
+          800: "#1E40AF",
+          900: "#1E3A8A",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -98,24 +111,26 @@ export default {
             height: "0",
           },
         },
-        // Custom animations
+        // Enhanced animations
         float: {
           "0%, 100%": {
             transform: "translateY(0px) rotate(0deg)",
           },
           "33%": {
-            transform: "translateY(-20px) rotate(1deg)",
+            transform: "translateY(-10px) rotate(1deg)",
           },
           "66%": {
-            transform: "translateY(-10px) rotate(-1deg)",
+            transform: "translateY(-5px) rotate(-1deg)",
           },
         },
         "fade-in": {
           from: {
             opacity: "0",
+            transform: "translateY(10px)",
           },
           to: {
             opacity: "1",
+            transform: "translateY(0)",
           },
         },
         "fade-in-up": {
@@ -130,7 +145,7 @@ export default {
         },
         "scale-in": {
           from: {
-            transform: "scale(0.8)",
+            transform: "scale(0.9)",
             opacity: "0",
           },
           to: {
@@ -144,15 +159,25 @@ export default {
             opacity: "0",
           },
           "60%": {
-            transform: "scale(1.1)",
+            transform: "scale(1.05)",
             opacity: "1",
           },
           "80%": {
-            transform: "scale(0.95)",
+            transform: "scale(0.98)",
           },
           "100%": {
             transform: "scale(1)",
             opacity: "1",
+          },
+        },
+        "slide-up": {
+          from: {
+            opacity: "0",
+            transform: "translateY(20px)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
           },
         },
         shimmer: {
@@ -163,21 +188,35 @@ export default {
             backgroundPosition: "200% 0",
           },
         },
+        "pulse-blue": {
+          "0%, 100%": {
+            opacity: "1",
+          },
+          "50%": {
+            opacity: "0.7",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 6s ease-in-out infinite",
-        "fade-in": "fade-in 0.8s ease-out forwards",
-        "fade-in-up": "fade-in-up 0.8s ease-out forwards",
-        "scale-in": "scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
-        "bounce-in": "bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
+        "fade-in": "fade-in 0.6s ease-out forwards",
+        "fade-in-up": "fade-in-up 0.6s ease-out forwards",
+        "scale-in": "scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        "bounce-in": "bounce-in 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
+        "slide-up": "slide-up 0.5s ease-out forwards",
         shimmer: "shimmer 2s infinite",
+        "pulse-blue": "pulse-blue 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(135deg, #ff4da3 0%, #ff7eb9 100%)",
-        "gradient-secondary": "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
-        "gradient-accent": "linear-gradient(135deg, #06d6a0 0%, #34d399 100%)",
+        "gradient-primary": "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
+        "gradient-secondary": "linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)",
+        "gradient-accent": "linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)",
+      },
+      boxShadow: {
+        glow: "0 0 20px rgb(59 130 246 / 0.25)",
+        float: "0 8px 30px -5px rgb(59 130 246 / 0.15)",
       },
     },
   },

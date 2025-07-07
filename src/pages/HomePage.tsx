@@ -17,104 +17,109 @@ import {
   Heart,
   Globe,
   TrendingUp,
-  CheckCircle
+  CheckCircle,
+  Route,
+  Leaf,
+  DollarSign
 } from 'lucide-react';
-import { AnimatedBanner } from '@/components/shared/AnimatedBanner';
 
 const HomePage = () => {
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
   const features = [
     {
-      icon: Car,
-      title: "Smart Carpooling",
-      description: "Find rides that match your schedule and route preferences with our intelligent matching system.",
-      color: "from-pink-500 to-rose-500",
-      bgColor: "bg-pink-50 dark:bg-pink-900/20"
+      icon: Route,
+      title: "Smart Route Matching",
+      description: "AI-powered algorithm finds the perfect carpool matches based on your route, schedule, and preferences.",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20"
     },
     {
       icon: Calendar,
-      title: "Event Integration", 
-      description: "Coordinate rides to events seamlessly. Share costs and make new connections on the way.",
-      color: "from-purple-500 to-indigo-500",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20"
+      title: "Event Carpooling", 
+      description: "Easily coordinate shared rides to concerts, festivals, conferences, and other events in your area.",
+      color: "from-cyan-500 to-blue-500",
+      bgColor: "bg-cyan-50 dark:bg-cyan-900/20"
     },
     {
       icon: Shield,
-      title: "Safe & Secure",
-      description: "Verified profiles, real-time tracking, and community ratings ensure your safety every trip.",
+      title: "Safety First",
+      description: "Verified profiles, real-time tracking, in-app messaging, and community reviews ensure your safety.",
       color: "from-green-500 to-emerald-500",
       bgColor: "bg-green-50 dark:bg-green-900/20"
     },
     {
-      icon: Zap,
-      title: "Instant Booking",
-      description: "Book rides in seconds with our streamlined interface. No more waiting around.",
-      color: "from-yellow-500 to-orange-500",
-      bgColor: "bg-yellow-50 dark:bg-yellow-900/20"
+      icon: Leaf,
+      title: "Eco-Friendly Impact",
+      description: "Reduce carbon emissions and traffic congestion while building a sustainable transportation community.",
+      color: "from-emerald-500 to-green-500",
+      bgColor: "bg-emerald-50 dark:bg-emerald-900/20"
     }
   ];
 
   const stats = [
-    { label: "Active Users", value: "50K+", icon: Users },
-    { label: "Rides Shared", value: "200K+", icon: Car },
-    { label: "Cities", value: "25+", icon: MapPin },
-    { label: "CO₂ Saved", value: "1M kg", icon: Globe }
+    { label: "Active Carpoolers", value: "50K+", icon: Users, color: "text-blue-600" },
+    { label: "Successful Rides", value: "200K+", icon: Car, color: "text-cyan-600" },
+    { label: "Cities Covered", value: "25+", icon: MapPin, color: "text-green-600" },
+    { label: "CO₂ Reduced", value: "1M kg", icon: Globe, color: "text-emerald-600" }
   ];
 
   const testimonials = [
     {
       name: "Sarah Chen",
       role: "Daily Commuter",
-      content: "Roadwise has transformed my daily commute. I've saved money and made great friends!",
+      content: "Roadwise transformed my daily commute! I've saved over $200 monthly and made amazing friends along the way.",
       avatar: "SC",
-      rating: 5
+      rating: 5,
+      gradient: "from-blue-500 to-cyan-500"
     },
     {
-      name: "Mike Johnson", 
+      name: "Mike Rodriguez", 
       role: "Event Organizer",
-      content: "The event integration is brilliant. Coordinating group travel has never been easier.",
-      avatar: "MJ",
-      rating: 5
+      content: "The event integration is brilliant. Coordinating group travel for our music festival has never been easier.",
+      avatar: "MR",
+      rating: 5,
+      gradient: "from-cyan-500 to-blue-500"
     },
     {
       name: "Priya Patel",
-      role: "Student",
-      content: "Perfect for student life. Affordable rides and a great community of travelers.",
+      role: "University Student",
+      content: "Perfect for student life! Affordable rides, eco-friendly choices, and a great community of travelers.",
       avatar: "PP", 
-      rating: 5
+      rating: 5,
+      gradient: "from-green-500 to-emerald-500"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pink-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-pink-900/10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900/10">
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-32">
-        <div className="absolute inset-0 bg-dots opacity-30"></div>
-        <div className="absolute top-20 left-10 w-32 h-32 bg-pink-200 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-200 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-blue-200 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute inset-0 bg-dots opacity-20"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200/50 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-cyan-200/50 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-emerald-200/50 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center space-x-2 bg-gradient-primary px-4 py-2 rounded-full text-white text-sm font-medium mb-8 animate-bounce-in">
-              <Sparkles className="h-4 w-4" />
-              <span>The Future of Carpooling is Here</span>
+            <div className="inline-flex items-center space-x-2 bg-gradient-primary px-6 py-3 rounded-full text-white text-sm font-medium mb-8 animate-bounce-in shadow-glow">
+              <Car className="h-4 w-4" />
+              <span>Smart Carpooling Made Simple</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold font-display mb-8 animate-fade-in-up">
-              <span className="text-gradient-primary">Share</span> the Journey,
+              <span className="text-gradient-primary">Share</span> Your Journey,
               <br />
-              <span className="text-gradient-primary">Save</span> the Planet
+              <span className="text-gradient-secondary">Save</span> the Planet
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animate-delay-200">
-              Connect with fellow travelers, split costs, reduce emissions, and discover a smarter way to move around your city.
+            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animate-delay-200">
+              Connect with fellow travelers, split costs, reduce emissions, and discover a smarter way to move around your city. Join the carpooling revolution today!
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up animate-delay-400">
               <Link to="/rides">
-                <Button className="bg-gradient-primary text-white font-semibold px-8 py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+                <Button className="bg-gradient-primary text-white font-semibold px-8 py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group btn-hover-glow ripple">
                   <Car className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
                   Find a Ride
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -122,49 +127,39 @@ const HomePage = () => {
               </Link>
               
               <Link to="/events">
-                <Button variant="outline" className="font-semibold px-8 py-4 rounded-2xl text-lg border-2 border-gray-200 hover:border-pink-200 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-300 group">
+                <Button variant="outline" className="font-semibold px-8 py-4 rounded-2xl text-lg border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 group btn-hover-lift">
                   <Calendar className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                   Browse Events
                 </Button>
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div 
-                key={stat.label}
-                className={`text-center animate-scale-in animate-delay-${index * 100}`}
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-2xl mb-4 shadow-lg">
-                  <stat.icon className="h-8 w-8 text-white" />
+            {/* Quick Stats */}
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 animate-fade-in-up animate-delay-500">
+              {stats.map((stat, index) => (
+                <div key={stat.label} className="text-center">
+                  <div className={`text-3xl font-bold ${stat.color} mb-1`}>
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold font-display text-gradient-primary mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-24">
+      <section className="py-24 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 animate-fade-in-up">
               Why Choose <span className="text-gradient-primary">Roadwise</span>?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto animate-fade-in-up animate-delay-200">
-              Experience the perfect blend of convenience, safety, and community in every ride.
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto animate-fade-in-up animate-delay-200">
+              Experience the perfect blend of convenience, safety, and sustainability in every ride.
             </p>
           </div>
           
@@ -173,9 +168,10 @@ const HomePage = () => {
               <Card 
                 key={feature.title}
                 className={`
-                  group cursor-pointer transition-all duration-500 hover:shadow-2xl border-0 shadow-lg
-                  ${hoveredFeature === index ? 'scale-105 shadow-2xl' : ''}
+                  group cursor-pointer transition-all duration-500 hover:shadow-2xl border-0 shadow-card card-hover
+                  ${hoveredFeature === index ? 'scale-105 shadow-float' : ''}
                   animate-fade-in-up animate-delay-${index * 200}
+                  card-modern
                 `}
                 onMouseEnter={() => setHoveredFeature(index)}
                 onMouseLeave={() => setHoveredFeature(null)}
@@ -185,15 +181,15 @@ const HomePage = () => {
                     <feature.icon className="h-8 w-8 text-white" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold font-display mb-4 group-hover:text-pink-600 transition-colors">
+                  <h3 className="text-2xl font-bold font-display mb-4 group-hover:text-blue-600 transition-colors">
                     {feature.title}
                   </h3>
                   
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg">
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-lg mb-6">
                     {feature.description}
                   </p>
                   
-                  <div className="mt-6 flex items-center text-pink-600 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                  <div className="flex items-center text-blue-600 font-semibold group-hover:translate-x-2 transition-transform duration-300">
                     Learn more
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </div>
@@ -204,15 +200,50 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 animate-fade-in-up">
+              How It <span className="text-gradient-primary">Works</span>
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400 animate-fade-in-up animate-delay-200">
+              Getting started is as easy as 1-2-3
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { icon: MapPin, title: "Set Your Route", description: "Enter your starting point and destination" },
+              { icon: Users, title: "Find Matches", description: "Browse available rides or offer your own" },
+              { icon: Car, title: "Share & Save", description: "Connect with riders and split the cost" }
+            ].map((step, index) => (
+              <div key={step.title} className={`text-center animate-fade-in-up animate-delay-${index * 200}`}>
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-glow">
+                    <step.icon className="h-10 w-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {index + 1}
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-3">{step.title}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-indigo-900/20">
+      <section className="py-24 bg-gradient-to-r from-blue-50 via-cyan-50 to-emerald-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-emerald-900/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 animate-fade-in-up">
               Loved by <span className="text-gradient-primary">Thousands</span>
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 animate-fade-in-up animate-delay-200">
-              See what our amazing community has to say about their experience.
+            <p className="text-xl text-slate-600 dark:text-slate-400 animate-fade-in-up animate-delay-200">
+              Join our community of happy carpoolers
             </p>
           </div>
           
@@ -221,8 +252,9 @@ const HomePage = () => {
               <Card 
                 key={testimonial.name}
                 className={`
-                  group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg hover:scale-105
+                  group hover:shadow-2xl transition-all duration-500 border-0 shadow-card hover:scale-105
                   animate-fade-in-up animate-delay-${index * 200}
+                  card-modern
                 `}
               >
                 <CardContent className="p-8 text-center">
@@ -232,19 +264,19 @@ const HomePage = () => {
                     ))}
                   </div>
                   
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 italic text-lg leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 italic text-lg leading-relaxed">
                     "{testimonial.content}"
                   </p>
                   
                   <div className="flex items-center justify-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                    <div className={`w-12 h-12 bg-gradient-to-r ${testimonial.gradient} rounded-full flex items-center justify-center text-white font-bold shadow-lg`}>
                       {testimonial.avatar}
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">
                         {testimonial.name}
                       </div>
-                      <div className="text-gray-500 text-sm">
+                      <div className="text-slate-500 text-sm">
                         {testimonial.role}
                       </div>
                     </div>
@@ -277,12 +309,12 @@ const HomePage = () => {
             </h2>
             
             <p className="text-xl md:text-2xl mb-12 opacity-90 animate-fade-in-up animate-delay-200">
-              Join thousands of smart commuters who are already saving money and making a difference.
+              Join thousands of smart commuters who are already saving money, time, and the environment.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up animate-delay-400">
               <Link to="/rides">
-                <Button className="bg-white text-pink-600 font-semibold px-8 py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+                <Button className="bg-white text-blue-600 font-semibold px-8 py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group btn-hover-glow">
                   <Zap className="mr-2 h-5 w-5" />
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -291,22 +323,26 @@ const HomePage = () => {
               
               <Button variant="outline" className="font-semibold px-8 py-4 rounded-2xl text-lg border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300 group">
                 <TrendingUp className="mr-2 h-5 w-5" />
-                View Live Stats
+                View Impact Stats
               </Button>
             </div>
             
-            <div className="mt-12 flex items-center justify-center space-x-8 text-white/80 animate-fade-in-up animate-delay-500">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white/80 animate-fade-in-up animate-delay-500">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5" />
-                <span>No setup fees</span>
+                <span>100% Free to Join</span>
               </div>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5" />
-                <span>Instant verification</span>
+                <span>Instant Verification</span>
               </div>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5" />
-                <span>24/7 support</span>
+                <span>24/7 Support</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5" />
+                <span>Safe & Secure</span>
               </div>
             </div>
           </div>
