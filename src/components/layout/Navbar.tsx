@@ -1,13 +1,29 @@
-
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Car, Calendar, Users, LayoutDashboard, User, Moon, Sun, LogOut, Menu, X } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { AuthDialog } from '@/components/auth/AuthDialog';
-import { useTheme } from '@/components/ui/theme-provider';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Car,
+  Calendar,
+  Users,
+  LayoutDashboard,
+  User,
+  Moon,
+  Sun,
+  LogOut,
+  Menu,
+  X,
+  MapPin,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthDialog } from "@/components/auth/AuthDialog";
+import { useTheme } from "@/components/ui/theme-provider";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -17,14 +33,17 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Home', href: '/', icon: Car },
-    { name: 'Events', href: '/events', icon: Calendar },
-    { name: 'Rides', href: '/rides', icon: Users },
-    ...(user ? [{ name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }] : []),
+    { name: "Home", href: "/", icon: Car },
+    { name: "Events", href: "/events", icon: Calendar },
+    { name: "Rides", href: "/rides", icon: Users },
+    { name: "Taxi Demand", href: "/taxi-demand", icon: MapPin },
+    ...(user
+      ? [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
+      : []),
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
@@ -74,11 +93,15 @@ export function Navbar() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full"
+                    >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.user_metadata?.image_url} />
                         <AvatarFallback>
-                          {user.user_metadata?.name?.charAt(0) || user.email?.charAt(0)}
+                          {user.user_metadata?.name?.charAt(0) ||
+                            user.email?.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -103,9 +126,7 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button onClick={() => setShowAuthDialog(true)}>
-                  Sign In
-                </Button>
+                <Button onClick={() => setShowAuthDialog(true)}>Sign In</Button>
               )}
 
               {/* Mobile menu button */}
@@ -115,7 +136,11 @@ export function Navbar() {
                 className="md:hidden"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -124,7 +149,11 @@ export function Navbar() {
           {mobileMenuOpen && (
             <div className="md:hidden py-4 space-y-2">
               {navigation.map((item) => (
-                <Link key={item.name} to={item.href} onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   <Button
                     variant={isActive(item.href) ? "default" : "ghost"}
                     className="w-full justify-start"

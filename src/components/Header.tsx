@@ -1,9 +1,8 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Car, User, MessageCircle, Calendar, LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { AuthDialog } from './auth/AuthDialog';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Car, User, MessageCircle, Calendar, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthDialog } from "./auth/AuthDialog";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -17,18 +16,28 @@ export function Header() {
             <Car className="h-8 w-8 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">Roadwise</h1>
           </div>
-          
+
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#events" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+            <a
+              href="#events"
+              className="text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+            >
               <Calendar className="h-4 w-4" />
               <span>Events</span>
             </a>
-            <a href="#rides" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+            <a
+              href="#rides"
+              className="text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+            >
               <Car className="h-4 w-4" />
               <span>Rides</span>
             </a>
+
             {user && (
-              <a href="#messages" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+              <a
+                href="#messages"
+                className="text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+              >
                 <MessageCircle className="h-4 w-4" />
                 <span>Messages</span>
               </a>
@@ -55,9 +64,7 @@ export function Header() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={() => setShowAuthDialog(true)}>
-                Sign In
-              </Button>
+              <Button onClick={() => setShowAuthDialog(true)}>Sign In</Button>
             )}
           </div>
         </div>
