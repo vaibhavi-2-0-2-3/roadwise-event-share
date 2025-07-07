@@ -15,6 +15,7 @@ import RideDetailsPage from "./pages/RideDetailsPage";
 import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
+import 'leaflet/dist/leaflet.css';
 
 const queryClient = new QueryClient();
 

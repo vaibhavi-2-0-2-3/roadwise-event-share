@@ -19,17 +19,17 @@ interface CreateRideDialogProps {
   eventDate?: string;
 }
 
-export function CreateRideDialog({ 
-  open, 
-  onOpenChange, 
-  eventId, 
-  eventTitle, 
+export function CreateRideDialog({
+  open,
+  onOpenChange,
+  eventId,
+  eventTitle,
   eventLocation,
   eventDate
 }: CreateRideDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [formData, setFormData] = useState({
     origin: '',
     destination: eventLocation || '',
@@ -46,7 +46,7 @@ export function CreateRideDialog({
       const eventDateTime = new Date(eventDate);
       // Set departure time 1 hour before event time
       const departureDateTime = new Date(eventDateTime.getTime() - 60 * 60 * 1000);
-      
+
       setFormData(prev => ({
         ...prev,
         destination: eventLocation,
@@ -60,9 +60,9 @@ export function CreateRideDialog({
   const createRideMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (!user) throw new Error('Must be logged in');
-      
+
       const departureDateTime = new Date(`${data.departureDate}T${data.departureTime}`);
-      
+
       const { error } = await supabase
         .from('rides')
         .insert({
@@ -75,7 +75,7 @@ export function CreateRideDialog({
           departure_time: departureDateTime.toISOString(),
           price_per_seat: data.pricePerSeat
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -105,12 +105,12 @@ export function CreateRideDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.origin || !formData.destination || !formData.departureDate || !formData.departureTime) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
+
     createRideMutation.mutate(formData);
   };
 
@@ -192,38 +192,55 @@ export function CreateRideDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="seats">Available Seats</Label>
+              <Label htmlFor="seats" className="text-sm font-medium">Available Seats</Label>
               <Input
                 id="seats"
                 type="number"
                 min="1"
                 max="8"
+                className="border border-black rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 hover:border-pink-400 hover:shadow-md hover:shadow-pink-200 transition-all"
                 value={formData.seats}
-                onChange={(e) => setFormData({ ...formData, seats: parseInt(e.target.value) || 1 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    seats: parseInt(e.target.value) || 1,
+                  })
+                }
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="price">Price per Seat ($)</Label>
+              <Label htmlFor="price" className="text-sm font-medium">Price per Seat ($)</Label>
               <Input
                 id="price"
                 type="number"
                 min="0"
                 step="0.01"
+                className="border border-black rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 hover:border-pink-400 hover:shadow-md hover:shadow-pink-200 transition-all"
                 value={formData.pricePerSeat}
-                onChange={(e) => setFormData({ ...formData, pricePerSeat: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    pricePerSeat: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Additional Notes</Label>
+          <div className="space-y-2 mt-4">
+            <Label htmlFor="description" className="text-sm font-medium">Additional Notes</Label>
             <Textarea
               id="description"
               placeholder="Any additional information about the ride..."
+              className="border border-black rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 hover:border-pink-400 hover:shadow-md hover:shadow-pink-200 transition-all"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
             />
           </div>
+
 
           <div className="flex space-x-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -13,20 +13,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { RideRequestButton } from '@/components/rides/RideRequestButton';
 import { WeatherWidget } from '@/components/rides/WeatherWidget';
 import { CalendarButton } from '@/components/rides/CalendarButton';
-import { RouteMapDialog } from '@/components/rides/RouteMapDialog';
 import { CompletedRideReview } from '@/components/rides/CompletedRideReview';
 import { PendingRequests } from '@/components/rides/PendingRequests';
 import { ConfirmedPassengers } from '@/components/rides/ConfirmedPassengers';
 import { RideChat } from '@/components/rides/RideChat';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { RideStatusButton } from '@/components/rides/RideStatusButton';
-import rideHeroIllustration from '@/assets/ride-hero-illustration.svg';
+import banner from '@/assets/details-banner-img.png';
+import { ChevronDown, ChevronUp, Car } from 'lucide-react';
+import RideLiveTracker from '@/components/liveTracking/RideLiveTracker';
+
 
 export default function RideDetailsPage() {
   const { rideId } = useParams();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showDriverChat, setShowDriverChat] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const { data: ride, isLoading: rideLoading } = useQuery({
     queryKey: ['ride-details', rideId],
@@ -120,28 +123,34 @@ export default function RideDetailsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       {/* Hero Banner with Illustration */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
-        <div className="absolute inset-0 opacity-20">
-          <div className="w-full h-full bg-repeat" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f1f5f9' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}></div>
-        </div>
-        <div className="container mx-auto px-4 py-12 relative">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Link to="/rides" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 mb-6 font-medium transition-colors group">
-                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                Back to rides
-              </Link>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground/90 mb-2">Ride Details</h1>
-              <p className="text-muted-foreground text-lg">Everything you need to know about this journey</p>
-            </div>
-            <div className="hidden md:block">
-              <img src={rideHeroIllustration} alt="Ride illustration" className="w-32 h-32 opacity-60" />
-            </div>
+      <div
+        className="relative bg-cover bg-center bg-no-repeat border-b border-border/50"
+        style={{
+          backgroundImage: `url(${banner})`,
+          height: '220px',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-white/50 dark:from-black/80 dark:via-black/60 dark:to-black/40" />
+        <div className="container mx-auto px-4 py-10 relative z-10">
+          <div className="flex flex-col items-start">
+            <Link
+              to="/rides"
+              className="inline-flex items-center gap-2 text hover:text-foreground mb-3 font-medium transition-colors group"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              Back to rides
+            </Link>
+
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+              Ride Details
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Everything you need to know about this journey
+            </p>
           </div>
         </div>
       </div>
+
 
       <div className="container mx-auto px-4 py-8">
 
@@ -159,174 +168,230 @@ export default function RideDetailsPage() {
               <PendingRequests rideId={ride.id} />
             )}
 
-            {/* Driver's Confirmed Passengers Section */}
-            {isDriverView && (
-              <>
-                <ConfirmedPassengers
-                  rideId={ride.id}
-                  onMessagePassenger={handleMessagePassenger}
-                />
-                <RideStatusButton ride={ride} />
-              </>
+            <RideStatusButton ride={ride} />
+            {ride.status === 'in_progress' && (
+              <RideLiveTracker
+                currentUserId={user.id}
+                participants={[
+                  { userId: ride.driver_id, name: ride.profiles?.name, rideId: ride.id },
+                  ...(existingBooking?.status === 'confirmed'
+                    ? [{ userId: user.id, name: user.user_metadata?.full_name || user.email, rideId: ride.id }]
+                    : []
+                  )
+                ]}
+              />
             )}
 
 
+
             {/* Ride Details Card */}
-            <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-t-lg">
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Navigation className="h-6 w-6 text-primary" />
-                  </div>
+            <Card className="border border-black bg-white text-black shadow-none rounded-none">
+              <CardHeader className="border-b border-black px-6 py-4">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <Navigation className="h-5 w-5" />
                   Journey Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-8 p-8">
-                {/* From Location */}
-                <div className="relative flex items-center justify-between p-6 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-2xl border border-emerald-200/50 dark:border-emerald-800/30">
-                  <div className="flex items-start gap-4">
-                    <div className="relative">
-                      <div className="w-4 h-4 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/30"></div>
-                      <div className="absolute inset-0 w-4 h-4 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
-                    </div>
+
+              <CardContent className="space-y-6 p-6">
+                {/* Journey Summary */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-base">
+                  {/* Origin */}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-black" />
                     <div>
-                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Departure Point</p>
-                      <p className="font-bold text-xl text-emerald-900 dark:text-emerald-100">{ride.origin}</p>
+                      <p className="text-sm uppercase text-muted-foreground font-medium">From</p>
+                      <p className="text-lg font-bold">{ride.origin}</p>
                     </div>
                   </div>
-                  <RouteMapDialog
-                    origin={ride.origin}
-                    destination={ride.destination}
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        <Navigation className="h-4 w-4 mr-1" />
-                        Map
-                      </Button>
-                    }
-                  />
-                </div>
 
-                {/* To Location */}
-                <div className="relative flex items-center justify-between p-6 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-2xl border border-rose-200/50 dark:border-rose-800/30">
-                  <div className="flex items-start gap-4">
-                    <div className="relative">
-                      <div className="w-4 h-4 bg-rose-500 rounded-full shadow-lg shadow-rose-500/30"></div>
-                      <div className="absolute -inset-1 w-6 h-6 border-2 border-rose-500 rounded-full opacity-30"></div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-rose-700 dark:text-rose-300 uppercase tracking-wide">Destination</p>
-                      <p className="font-bold text-xl text-rose-900 dark:text-rose-100">{ride.destination}</p>
+                  {/* Arrow */}
+                  <div className="flex items-center justify-center w-full my-2">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-black rounded-full"></div>
+                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
+                      <Car className="h-5 w-5 text-muted-foreground" />
+                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
+                      <div className="w-2 h-2 bg-black rounded-full"></div>
                     </div>
                   </div>
-                  <RouteMapDialog
-                    origin={ride.origin}
-                    destination={ride.destination}
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        <Navigation className="h-4 w-4 mr-1" />
-                        Map
-                      </Button>
-                    }
-                  />
-                </div>
 
-                <div className="relative">
-                  <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-blue-500 to-rose-500 opacity-30"></div>
+                  <div className="flex items-center justify-center w-full my-2">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-black rounded-full"></div>
+                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
+                      <Car className="h-5 w-5 text-muted-foreground" />
+                      <div className="h-1 w-6 bg-dotted-line bg-repeat-x bg-center" />
+                      <div className="w-2 h-2 bg-black rounded-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Destination */}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-black" />
+                    <div>
+                      <p className="text-sm uppercase text-muted-foreground font-medium">To</p>
+                      <p className="text-lg font-bold">{ride.destination}</p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Departure Info */}
-                <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-800/30">
-                  <div className="p-3 bg-blue-500/10 rounded-full">
-                    <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                  </div>
+                <div className="flex items-center gap-3 pt-2 border-t border-dashed border-muted">
+                  <Clock className="h-5 w-5 text-black" />
                   <div>
-                    <p className="text-sm font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">Departure Schedule</p>
-                    <p className="font-semibold text-lg text-blue-900 dark:text-blue-100">
-                      {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                    <p className="text-sm uppercase text-muted-foreground font-medium mb-1">Departure</p>
+                    <p className="text-base font-semibold text-black">
+                      {new Date(ride.departure_time).toLocaleDateString('en-IN', {
                         weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
                       })}
                     </p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                    <p className="text-xl font-bold text-black">
+                      {new Date(ride.departure_time).toLocaleTimeString('en-IN', {
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
+                        hour12: true
                       })}
                     </p>
                   </div>
                 </div>
 
-                {/* Full Route Button */}
-                <RouteMapDialog
-                  origin={ride.origin}
-                  destination={ride.destination}
-                  trigger={
-                    <Button variant="outline" className="w-full h-14 text-lg font-medium bg-gradient-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all group">
-                      <Navigation className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
-                      View Full Route on Google Maps
-                    </Button>
-                  }
-                />
+                {/* Route Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border border-black rounded-none h-12 text-base font-semibold hover:bg-muted"
+                  onClick={() => {
+                    const url = `https://www.google.com/maps/dir/${encodeURIComponent(ride.origin)}/${encodeURIComponent(ride.destination)}`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  View Full Route on Google Maps
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Driver Card */}
-            <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-accent/5 to-primary/5 rounded-t-lg">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 bg-accent/10 rounded-full">
-                    <Users className="h-6 w-6 text-accent" />
+
+
+
+
+
+
+
+
+
+
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Calendar */}
+            <Card className="bg-white dark:bg-black border border-black dark:border-white rounded-none shadow-none w-full max-w-xs">
+              <CardContent className="p-3 text-center space-y-2">
+                <h3 className="text-base font-bold text-black dark:text-white">Never miss your ride</h3>
+
+                <CalendarButton
+                  ride={ride}
+                  className="mt-2 bg-white text-black text-xs font-semibold py-1 px-3 border border-black rounded-none hover:bg-[#ff4da3] hover:text-white transition-all"
+                />
+
+              </CardContent>
+            </Card>
+
+
+            {/* Price and Booking */}
+            <Card
+              className="border border-dashed border-black bg-white text-black rounded-none transition-all duration-200"
+            >
+              <CardContent className="p-4 space-y-6">
+                {/* Price Card */}
+                <div className="flex items-center justify-between p-3 border border-black bg-white rounded-none transition-all duration-200 hover:border-2 hover:border-[#ff4da3]">
+
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 border border-black">
+                      <span className="text-sm font-bold">₹</span>
+                    </div>
+                    <span className="text-sm font-semibold">Price per seat</span>
                   </div>
+                  <span className="text-lg font-bold">
+                    {ride.price_per_seat > 0 ? `₹${ride.price_per_seat}` : 'Free'}
+                  </span>
+                </div>
+
+                {/* Seats Available */}
+                <div className="flex items-center justify-between p-3 border border-black bg-white rounded-none transition-all duration-200 hover:border-2 hover:border-[#ff4da3]">
+
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 border border-black">
+                      <Users className="h-4 w-4 text-black" />
+                    </div>
+                    <span className="text-sm font-semibold">Available seats</span>
+                  </div>
+                  <span className="text-lg font-bold">{ride.available_seats}</span>
+                </div>
+
+                {/* Dashed Line Separator */}
+                <div className="border-t border-dashed border-black my-2" />
+
+                {/* Request Button */}
+                <RideRequestButton
+                  ride={ride}
+                  existingBooking={existingBooking}
+                  onShowAuth={() => setShowAuthDialog(true)}
+                />
+
+                {/* Completed Ride Review */}
+                {existingBooking && (
+                  <CompletedRideReview ride={ride} booking={existingBooking} />
+                )}
+              </CardContent>
+            </Card>
+
+
+
+            {/* Driver Card */}
+            <Card className="border border-black bg-white text-black shadow-none rounded-none">
+              <CardHeader className="border-b border-black px-6 py-4">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <Users className="h-5 w-5" />
                   Your Driver
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8">
-                <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-accent/5 to-primary/5 hover:from-accent/10 hover:to-primary/10 transition-all duration-300 border border-accent/20 hover:border-accent/40 hover:shadow-lg group">
-                  <div className="relative">
-                    <Avatar className="h-20 w-20 ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                      <AvatarImage src={ride.profiles?.image_url} />
-                      <AvatarFallback className="bg-gradient-to-r from-primary to-accent text-white text-2xl font-bold">
-                        {ride.profiles?.name?.charAt(0) || 'D'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">{ride.profiles?.name}</h3>
-                    <p className="text-muted-foreground font-medium">Verified Driver</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-full">
-                        <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                        <span className="text-sm font-bold text-yellow-700 dark:text-yellow-300">4.8</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">(127 reviews)</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {/* Message button for passengers with confirmed booking */}
-                    {!isDriverView && existingBooking?.status === 'confirmed' && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            Message
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
-                          </DialogHeader>
-                          <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                        </DialogContent>
-                      </Dialog>
-                    )}
 
-                    {/* Message button for drivers */}
-                    {isDriverView && (
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between p-4 bg-muted rounded-md">
+                  {/* Avatar + Info */}
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <Avatar className="h-16 w-16 border border-black">
+                        <AvatarImage src={ride.profiles?.image_url} />
+                        <AvatarFallback className="bg-black text-white text-lg font-bold">
+                          {ride.profiles?.name?.charAt(0) || 'D'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-lg">{ride.profiles?.name}</h3>
+                      <p className="text-sm text-muted-foreground">Verified Driver</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 rounded-full">
+                          <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                          <span className="text-xs font-semibold text-yellow-700">4.8</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">(127 reviews)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buttons on the Right */}
+                  <div className="flex flex-col gap-2 items-end">
+                    {isDriverView ? (
                       <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -341,10 +406,27 @@ export default function RideDetailsPage() {
                           <RideChat rideId={ride.id} driverId={ride.driver_id} />
                         </DialogContent>
                       </Dialog>
+                    ) : (
+                      existingBooking?.status === 'confirmed' && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <MessageCircle className="h-4 w-4 mr-1" />
+                              Message
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
+                            </DialogHeader>
+                            <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                          </DialogContent>
+                        </Dialog>
+                      )
                     )}
 
                     <Link to={`/profile/${ride.driver_id}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="secondary" size="sm" className="rounded-md">
                         View Profile
                       </Button>
                     </Link>
@@ -352,85 +434,66 @@ export default function RideDetailsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Calendar */}
-            <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <div className="text-center mb-4">
-                  <h3 className="font-bold text-lg text-foreground/90 mb-2">Add to Calendar</h3>
-                  <p className="text-sm text-muted-foreground">Never miss your ride</p>
-                </div>
-                <CalendarButton ride={ride} />
-              </CardContent>
-            </Card>
 
-            {/* Price and Booking */}
-            <Card className="shadow-xl border-0 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-sm ring-1 ring-primary/10">
-              <CardContent className="p-8 space-y-8">
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/50 dark:border-green-800/30">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/10 rounded-full">
-                      <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <span className="text-lg font-medium">Price per seat</span>
-                  </div>
-                  <span className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {ride.price_per_seat > 0 ? `$${ride.price_per_seat}` : 'Free'}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/30">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 rounded-full">
-                      <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-lg font-medium">Available seats</span>
-                  </div>
-                  <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">{ride.available_seats}</span>
-                </div>
 
-                <Separator />
 
-                <RideRequestButton
-                  ride={ride}
-                  existingBooking={existingBooking}
-                  onShowAuth={() => setShowAuthDialog(true)}
+
+
+            {/* Driver's Confirmed Passengers Section */}
+
+            {isDriverView && (
+              <>
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-black">
+                  <Users className="h-5 w-5" />
+                  Confirmed Passengers
+                </CardTitle>
+                <ConfirmedPassengers
+                  rideId={ride.id}
+                  onMessagePassenger={handleMessagePassenger}
                 />
 
-                {/* Review for completed rides */}
-                {existingBooking && (
-                  <CompletedRideReview ride={ride} booking={existingBooking} />
-                )}
-              </CardContent>
-            </Card>
+              </>
+            )}
 
             {/* Secure Payment Info */}
-            <Card className="shadow-xl border-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 backdrop-blur-sm ring-1 ring-green-200/50 dark:ring-green-800/30">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-green-500/10 rounded-full">
-                    <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h3 className="font-bold text-xl text-green-800 dark:text-green-200">100% Secure</h3>
+            <Card className="border border-black bg-white text-black shadow-none p-4 rounded-none space-y-4">
+              <div
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => setOpen(!open)}
+              >
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5" />
+                  <h3 className="font-bold text-base">Secure Online Payment</h3>
                 </div>
-                <div className="space-y-4 text-sm">
-                  <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 shadow-lg shadow-green-500/30"></div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">Bank-grade encryption for all transactions</span>
+                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </div>
+
+              {open && (
+                <div className="text-sm space-y-4 pt-1">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold">Payment</span>
+                    <p className="text-muted-foreground">
+                      The money is first transferred to the driver 24 hours after ride departure.
+                    </p>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 shadow-lg shadow-green-500/30"></div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">Full refund protection guarantee</span>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold">Guarantee</span>
+                    <p className="text-muted-foreground">
+                      If the ride is cancelled, we will automatically delete your payment.
+                    </p>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 shadow-lg shadow-green-500/30"></div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">Cancel free up to 24 hours before</span>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold">Secure</span>
+                    <p className="text-muted-foreground">
+                      See ratings and reviews before you book.
+                    </p>
                   </div>
                 </div>
-              </CardContent>
+              )}
             </Card>
           </div>
         </div>

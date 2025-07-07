@@ -19,7 +19,7 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
   const queryClient = useQueryClient();
   const isDriver = user?.id === ride.driver_id;
   const [localStatus, setLocalStatus] = useState(ride.status);
-  const [anyPaid, setAnyPaid] = useState(false); // ✅ Only one flag needed now
+  const [anyPaid, setAnyPaid] = useState(false);
 
   useEffect(() => {
     const checkAnyPaid = async () => {
@@ -47,13 +47,13 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
     if (!user || !isDriver) return;
 
     if (newStatus === 'in_progress') {
-      const { data: bookings, error: bookingsError } = await supabase
+      const { data: bookings, error } = await supabase
         .from('bookings')
         .select('payment_status')
         .eq('ride_id', ride.id)
         .eq('status', 'confirmed');
 
-      if (bookingsError) throw bookingsError;
+      if (error) throw error;
       if (!bookings || bookings.length === 0) {
         toast.error('❌ No confirmed passengers found.');
         return;
@@ -83,7 +83,7 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
       if (bookingError) throw bookingError;
     }
 
-    setLocalStatus(newStatus); // ✅ Update local UI
+    setLocalStatus(newStatus);
   };
 
   const mutation = useMutation({
@@ -103,17 +103,16 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
   if (!isDriver) return null;
 
   return (
-    <div className="flex gap-4 mt-4">
+    <div className="mt-4 flex flex-wrap gap-4 items-center">
       {localStatus === 'active' && anyPaid && (
         <Button
           onClick={() => mutation.mutate('in_progress')}
           disabled={mutation.isPending}
-          variant="outline"
-          size="sm"
-          className="bg-yellow-50 text-yellow-800 border-yellow-200"
+          variant="ghost"
+          className="border border-black text-black hover:bg-black hover:text-white transition-all rounded-null px-5 py-2 text-sm font-bold tracking-wide"
         >
           <Play className="h-4 w-4 mr-2" />
-          Start Ride
+          ▶️ Begin Journey
         </Button>
       )}
 
@@ -121,12 +120,10 @@ export function RideStatusButton({ ride }: RideStatusButtonProps) {
         <Button
           onClick={() => mutation.mutate('completed')}
           disabled={mutation.isPending}
-          variant="outline"
-          size="sm"
-          className="bg-green-50 text-green-800 border-green-200"
+          variant="ghost"
+          className="border border-black text-black hover:bg-black hover:text-white transition-all rounded-null px-5 py-2 text-sm font-bold tracking-wide"
         >
-          <CheckCircle className="h-4 w-4 mr-2" />
-          End Ride
+          🛑 Wrap Up Ride
         </Button>
       )}
     </div>

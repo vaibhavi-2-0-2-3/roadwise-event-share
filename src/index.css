@@ -16,6 +16,9 @@
   --brand-900: #0c4a6e;
   --brand-950: #082f49;
 
+  --accent-pink: #ff7eb9; /* A playful, vibrant pink */
+  
+
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
@@ -200,4 +203,9 @@ body {
 
 .btn-animated:hover::before {
   left: 100%;
+}
+
+.bg-dotted-line {
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 5px 1px;
 }

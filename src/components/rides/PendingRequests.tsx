@@ -106,7 +106,7 @@ export function PendingRequests({ rideId }: PendingRequestsProps) {
 
   if (!pendingRequests || pendingRequests.length === 0) {
     return (
-      <Card>
+      <Card className="bg-white text-black border-none rounded-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -124,33 +124,35 @@ export function PendingRequests({ rideId }: PendingRequestsProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="bg-white text-black border-none rounded-none">
+      <CardHeader className="px-0 pb-2">
+        <CardTitle className="text-xl font-bold flex items-center gap-2">
           <Users className="h-5 w-5" />
           Pending Requests ({pendingRequests.length})
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {pendingRequests.map((request) => {
+
+      <CardContent className="space-y-0 divide-y divide-dashed divide-border p-0">
+        {pendingRequests.map((request, idx) => {
           const isAccepted = acceptedIds.includes(request.id);
 
           return (
             <div
               key={request.id}
-              className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="flex justify-between items-center py-4 px-2 hover:bg-muted/40 transition-all"
             >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
+              {/* Left: Avatar & Info */}
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 border border-black">
                   <AvatarImage src={request.profiles?.image_url} />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  <AvatarFallback className="bg-black text-white font-bold">
                     {request.profiles?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h4 className="font-semibold">{request.profiles?.name}</h4>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Badge variant="secondary">
+                  <h4 className="font-semibold text-base">{request.profiles?.name}</h4>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Badge variant="secondary" className="rounded-sm px-2 py-0.5 text-xs border border-black">
                       {request.seats_booked} seat{request.seats_booked > 1 ? 's' : ''}
                     </Badge>
                     <span>•</span>
@@ -159,14 +161,15 @@ export function PendingRequests({ rideId }: PendingRequestsProps) {
                 </div>
               </div>
 
+              {/* Right: Actions */}
               <div className="flex gap-2">
                 {!isAccepted && (
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => handleReject(request.id, request.user_id)}
                     disabled={handleRequestMutation.isPending}
-                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                    className="text-red-600 hover:bg-red-100"
                   >
                     <X className="h-4 w-4 mr-1" />
                     Reject
@@ -176,7 +179,9 @@ export function PendingRequests({ rideId }: PendingRequestsProps) {
                   size="sm"
                   onClick={() => !isAccepted && handleAccept(request.id, request.user_id)}
                   disabled={handleRequestMutation.isPending || isAccepted}
-                  className={isAccepted ? 'bg-green-100 text-green-700 cursor-default' : 'bg-green-600 hover:bg-green-700'}
+                  className={`border border-black rounded-sm ${isAccepted
+                    ? 'bg-green-100 text-green-700 cursor-default'
+                    : 'bg-white text-black hover:bg-black hover:text-white'}`}
                 >
                   <Check className="h-4 w-4 mr-1" />
                   {isAccepted ? 'Accepted' : 'Accept'}
@@ -188,4 +193,5 @@ export function PendingRequests({ rideId }: PendingRequestsProps) {
       </CardContent>
     </Card>
   );
+
 }
