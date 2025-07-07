@@ -17,11 +17,11 @@ export default function EventsPage() {
     queryKey: ['events', searchTerm],
     queryFn: async () => {
       let query = supabase.from('events').select('*').order('event_date', { ascending: true });
-      
+
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
       }
-      
+
       const { data, error } = await query;
       if (error) throw error;
       return data;
@@ -33,7 +33,7 @@ export default function EventsPage() {
     const event = new Date(eventDate);
     const diffTime = event.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return { label: 'Past', color: 'bg-gray-500' };
     if (diffDays === 0) return { label: 'Today', color: 'bg-green-500' };
     if (diffDays === 1) return { label: 'Tomorrow', color: 'bg-blue-500' };
@@ -43,10 +43,11 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       <AnimatedBanner
         title="Discover Events in Goa"
         subtitle="Find amazing events and connect with fellow travelers for shared rides"
-        gradient="from-blue-500 via-purple-500 to-pink-500"
+        gradient="from-blue-600 via-cyan-600 to-blue-800"
       >
         <div className="mt-8">
           <div className="relative max-w-lg mx-auto">
@@ -99,7 +100,7 @@ export default function EventsPage() {
                     <h3 className="font-bold text-xl mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
                       {event.title}
                     </h3>
-                    
+
                     <div className="space-y-3 text-sm text-gray-600 mb-6">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
