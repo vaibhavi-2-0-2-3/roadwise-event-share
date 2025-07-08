@@ -1,0 +1,76 @@
+<!-- views/ride.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Pay Your Driver</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+  <h2>Ride Fare Payment</h2>
+  <p><b>Driver:</b> Ajay Singh</p>
+  <p><b>From:</b> Mumbai</p>
+  <p><b>To:</b> Pune</p>
+  <p><b>Fare:</b> ₹150</p>
+
+
+
+  <form class="pay-form">
+    <input type="hidden" name="name" value="Ajay Singh">
+    <input type="hidden" name="amount" value="150">
+    <input type="hidden" name="description" value="Ride from Mumbai to Pune">
+    <input type="submit" value="Pay Now"> 
+  </form>
+
+  <script>
+    $(document).ready(function(){
+      $('.pay-form').submit(function(e){
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+          url: "/createOrder",
+          type: "POST",
+          data: formData,
+          success: function(res){
+            if(res.success){
+              var options = {
+                "key": res.key_id,
+                "amount": res.amount,
+                "currency": "INR",
+                "name": res.product_name,
+                "description": res.description,
+                "order_id": res.order_id,
+                "handler": function (response){
+                  alert("Payment Successful");
+                  window.location.href = "/success";
+                },
+                "prefill": {
+                  "name": res.name,
+                  "email": res.email,
+                  "contact": res.contact
+                },
+                // "method": {
+                //   "card": true,
+                //   "netbanking": true,
+                //   "wallet": ["gpay", "phonepe"]
+                // },
+                "theme": {
+                  "color": "#2300a3"
+                }
+              };
+              var rzp = new Razorpay(options);
+              rzp.open();
+            } else {
+              alert(res.msg);
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

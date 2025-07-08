@@ -1,13 +1,18 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Users, MessageCircle, Check } from 'lucide-react';
+import { Users, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { RideChat } from './RideChat';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface RideRequestButtonProps {
   ride: any;
@@ -15,7 +20,11 @@ interface RideRequestButtonProps {
   onShowAuth: () => void;
 }
 
-// ...imports stay the same
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideRequestButtonProps) {
   const { user } = useAuth();
@@ -49,6 +58,72 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
   const handleRequestRide = () => {
     if (!user) return onShowAuth();
     requestRideMutation.mutate(seatsToBook);
+  };
+
+  const handleRazorpayPayment = async () => {
+    const amount = Number(ride?.price_per_seat || 0) * Number(existingBooking?.seats_booked || 1);
+
+
+
+    // const amount = ride.price_per_seat * existingBooking.seats_booked;
+    // const name = user?.user_metadata?.full_name || user?.email || 'Passenger';
+
+   const rawName = user?.user_metadata?.full_name || user?.email || 'Passenger';
+const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim().substring(0, 50) : 'Passenger';
+
+
+    try {
+      const res = await fetch('http://localhost:3000/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, name }),
+      });
+
+      const data = await res.json();
+      const { order, key } = data;
+
+      const options = {
+        key,
+        amount: order.amount,
+        currency: 'INR',
+        name: 'RoadWise',
+        description: 'Ride Fare Payment',
+        order_id: order.id,
+        handler: async function (response: any) {
+          const { error } = await supabase
+            .from('bookings')
+            .update({
+              payment_status: 'paid',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingBooking.id);
+
+          if (!error) {
+            toast.success('✅ Payment successful');
+            queryClient.invalidateQueries({ queryKey: ['user-booking'] });
+            queryClient.invalidateQueries({ queryKey: ['ride-details'] });
+          } else {
+            toast.error('❌ Failed to update Supabase');
+          }
+        },
+        prefill: {
+          // name,
+          name: 'Test User', // ✅ keep simple for test
+          email: user?.email || 'test@example.com',
+          contact: '0000000000'
+        },
+        notes: {
+    ride_id: ride.id, // Optional but helps in backend debugging
+  },
+        theme: { color: '#000000' },
+      };
+
+      const razor = new window.Razorpay(options);
+      razor.open();
+    } catch (err) {
+      console.error('Razorpay error:', err);
+      toast.error('❌ Payment initialization failed');
+    }
   };
 
   const handleMessageClick = () => {
@@ -95,23 +170,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
               <p className="text-xs text-black">🚧 Payment pending</p>
               <Button
                 className="w-full bg-black text-white rounded-none hover:bg-white hover:text-black hover:border hover:border-black transition"
-                onClick={async () => {
-                  const { error } = await supabase
-                    .from('bookings')
-                    .update({
-                      payment_status: 'paid',
-                      updated_at: new Date().toISOString()
-                    })
-                    .eq('id', existingBooking.id);
-
-                  if (!error) {
-                    toast.success("✅ Payment successful");
-                    queryClient.invalidateQueries({ queryKey: ['user-booking'] });
-                    queryClient.invalidateQueries({ queryKey: ['ride-details'] });
-                  } else {
-                    toast.error("❌ Payment failed");
-                  }
-                }}
+                onClick={handleRazorpayPayment}
               >
                 Pay Now ₹{ride.price_per_seat * existingBooking.seats_booked}
               </Button>
@@ -183,4 +242,3 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
     </div>
   );
 }
-
