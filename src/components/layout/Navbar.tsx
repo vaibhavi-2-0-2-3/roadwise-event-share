@@ -83,8 +83,8 @@ export function Navbar() {
                     variant={isActive(item.href) ? "default" : "ghost"}
                     className={`
                       relative overflow-hidden transition-all duration-300 rounded-2xl px-6 py-2.5 font-medium
-                      ${isActive(item.href) 
-                        ? "bg-gradient-primary text-white shadow-glow hover:shadow-xl ripple" 
+                      ${isActive(item.href)
+                        ? "bg-gradient-primary text-white shadow-glow hover:shadow-xl ripple"
                         : "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
                       }
                       animate-fade-in animate-delay-${index * 100}
@@ -117,64 +117,37 @@ export function Navbar() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative h-12 w-12 rounded-2xl hover:shadow-lg transition-all duration-300 hover:scale-105 btn-hover-lift"
-                    >
+                    <Button variant="ghost" className="relative h-12 w-12 rounded-2xl hover:shadow-lg transition-all duration-300 hover:scale-105 btn-hover-lift">
                       <Avatar className="h-10 w-10 ring-2 ring-blue-100 dark:ring-blue-800">
                         <AvatarImage src={user.user_metadata?.image_url} />
                         <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-                          {user.user_metadata?.name?.charAt(0) ||
-                            user.email?.charAt(0)}
-                        </AvatarFallback>
+                          {user.user_metadata?.name?.charAt(0) || user.email?.charAt(0)}
+                        </AvatarFallback >
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 border-2 border-white dark:border-slate-900 rounded-full pulse-blue"></div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-64 p-4 bg-white/90 backdrop-blur-xl border-blue-100/50 shadow-xl rounded-2xl animate-scale-in" align="end">
-                    <div className="flex items-center space-x-3 mb-4 p-2">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.user_metadata?.image_url} />
-                        <AvatarFallback className="bg-gradient-primary text-white">
-                          {user.user_metadata?.name?.charAt(0) ||
-                            user.email?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-sm">
-                          {user.user_metadata?.name || "User"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="border-t border-blue-100/50 pt-2 space-y-1">
-                      <DropdownMenuItem asChild>
-                        <Link to="/profile" className="flex items-center rounded-2xl p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer">
-                          <User className="mr-3 h-4 w-4" />
-                          Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard" className="flex items-center rounded-2xl p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer">
-                          <LayoutDashboard className="mr-3 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={signOut} className="rounded-2xl p-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer">
-                        <LogOut className="mr-3 h-4 w-4" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </div>
+                  <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="flex items-center">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
-                  onClick={() => setShowAuthDialog(true)}
-                  className="bg-gradient-primary text-white font-semibold px-6 py-2.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 btn-hover-glow ripple"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
+                <Button onClick={() => setShowAuthDialog(true)}>
                   Sign In
                 </Button>
               )}
@@ -209,8 +182,8 @@ export function Navbar() {
                     variant={isActive(item.href) ? "default" : "ghost"}
                     className={`
                       w-full justify-start rounded-2xl py-3 px-4 transition-all duration-300
-                      ${isActive(item.href) 
-                        ? "bg-gradient-primary text-white shadow-glow" 
+                      ${isActive(item.href)
+                        ? "bg-gradient-primary text-white shadow-glow"
                         : "hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       }
                     `}
