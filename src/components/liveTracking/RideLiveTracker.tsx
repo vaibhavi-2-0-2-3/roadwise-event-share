@@ -86,7 +86,7 @@ export default function RideLiveTracker({ currentUserId, participants }) {
         <h2 className="text-xl font-bold mb-2">Welcome, {currentUser?.name}</h2>
         <button
           onClick={isSharing ? stopSharing : startSharing}
-          className="px-4 py-2 bg-[#ff4da3] text-black rounded mb-4"
+          className="px-4 py-2 bg-blue-500 text-black rounded mb-4"
         >
           {isSharing ? "⛔ Stop Sharing" : "📡 Start Sharing"}
         </button>

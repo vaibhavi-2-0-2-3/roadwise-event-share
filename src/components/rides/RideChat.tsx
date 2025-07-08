@@ -112,14 +112,14 @@ export function RideChat({ rideId, driverId }: RideChatProps) {
         {messages?.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-sm px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 ${msg.sender_id === user?.id
-              ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white rounded-br-none'
+              ? 'bg-gradient-to-br from-blue-500 to-fuchsia-600 text-white rounded-br-none'
               : 'bg-muted text-foreground border border-border rounded-bl-none'
               }`}>
               {msg.sender_id !== user?.id && (
                 <p className="text-xs font-medium mb-1">{msg.sender_profile?.name}</p>
               )}
               <p className="text-sm">{msg.content}</p>
-              <p className={`text-[10px] mt-2 italic ${msg.sender_id === user?.id ? 'text-pink-100' : 'text-muted-foreground'
+              <p className={`text-[10px] mt-2 italic ${msg.sender_id === user?.id ? 'text-blue-100' : 'text-muted-foreground'
                 }`}>
 
                 {new Date(msg.created_at!).toLocaleTimeString()}
@@ -142,7 +142,7 @@ export function RideChat({ rideId, driverId }: RideChatProps) {
             type="submit"
             disabled={!message.trim() || sendMessageMutation.isPending}
             size="icon"
-            className="bg-pink-500 hover:bg-pink-600 text-white shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send className="h-4 w-4" />
           </Button>

@@ -68,8 +68,8 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
     // const amount = ride.price_per_seat * existingBooking.seats_booked;
     // const name = user?.user_metadata?.full_name || user?.email || 'Passenger';
 
-   const rawName = user?.user_metadata?.full_name || user?.email || 'Passenger';
-const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim().substring(0, 50) : 'Passenger';
+    const rawName = user?.user_metadata?.full_name || user?.email || 'Passenger';
+    const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim().substring(0, 50) : 'Passenger';
 
 
     try {
@@ -113,8 +113,8 @@ const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim
           contact: '0000000000'
         },
         notes: {
-    ride_id: ride.id, // Optional but helps in backend debugging
-  },
+          ride_id: ride.id, // Optional but helps in backend debugging
+        },
         theme: { color: '#000000' },
       };
 
@@ -169,7 +169,7 @@ const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim
             <div className="space-y-2 mt-2">
               <p className="text-xs text-black">🚧 Payment pending</p>
               <Button
-                className="w-full bg-black text-white rounded-none hover:bg-white hover:text-black hover:border hover:border-black transition"
+                className="w-full bg-blue-600 text-white rounded-none hover:bg-white hover:text-blue-600 hover:border hover:border-blue-600 transition"
                 onClick={handleRazorpayPayment}
               >
                 Pay Now ₹{ride.price_per_seat * existingBooking.seats_booked}
@@ -184,7 +184,7 @@ const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="w-full border border-black text-black rounded-none hover:bg-[#ff4da3] transition"
+              className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
               onClick={handleMessageClick}
             >
               <MessageCircle className="h-4 w-4 mr-2" />

@@ -152,21 +152,20 @@ export default function RideDetailsPage() {
                 })}
               </p>
             </div>
-            
+
             {ride.status && (
-              <Badge 
+              <Badge
                 variant={ride.status === 'active' ? 'default' : 'secondary'}
-                className={`px-4 py-2 text-sm font-semibold rounded-full ${
-                  ride.status === 'active' 
-                    ? 'bg-green-500 text-white' 
-                    : ride.status === 'in_progress'
+                className={`px-4 py-2 text-sm font-semibold rounded-full ${ride.status === 'active'
+                  ? 'bg-green-500 text-white'
+                  : ride.status === 'in_progress'
                     ? 'bg-orange-500 text-white'
                     : 'bg-gray-500 text-white'
-                }`}
+                  }`}
               >
-                {ride.status === 'active' ? 'Available' : 
-                 ride.status === 'in_progress' ? 'In Progress' : 
-                 ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+                {ride.status === 'active' ? 'Available' :
+                  ride.status === 'in_progress' ? 'In Progress' :
+                    ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
               </Badge>
             )}
           </div>
@@ -283,16 +282,16 @@ export default function RideDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Driver Card - Clickable */}
-            <Link to={`/profile/${ride.driver_id}`}>
-              <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-[1.02]">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
-                    <Users className="h-5 w-5" />
-                    Your Driver
-                  </CardTitle>
-                </CardHeader>
+            <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-[1.02]">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
+                  <Users className="h-5 w-5" />
+                  Your Driver
+                </CardTitle>
+              </CardHeader>
 
-                <CardContent className="p-6">
+              <CardContent className="p-6">
+                <Link to={`/profile/${ride.driver_id}`}>
                   <div className="flex items-center gap-4 mb-4">
                     <div className="relative">
                       <Avatar className="h-16 w-16 border-2 border-blue-200">
@@ -316,49 +315,49 @@ export default function RideDetailsPage() {
                       </div>
                     </div>
                   </div>
+                </Link>
 
-                  {/* Chat Button for confirmed passengers */}
-                  {!isDriverView && existingBooking?.status === 'confirmed' && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Message Driver
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
-                        </DialogHeader>
-                        <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                      </DialogContent>
-                    </Dialog>
-                  )}
+                {/* Chat Button for confirmed passengers */}
+                {!isDriverView && existingBooking?.status === 'confirmed' && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      {/* <Button
+                        variant="outline"
+                        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Message Driver
+                      </Button> */}
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Chat with {ride.profiles?.name}</DialogTitle>
+                      </DialogHeader>
+                      <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                    </DialogContent>
+                  </Dialog>
+                )}
 
-                  {/* Driver Chat for driver view */}
-                  {isDriverView && (
-                    <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Chat with Passengers
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Ride Chat</DialogTitle>
-                        </DialogHeader>
-                        <RideChat rideId={ride.id} driverId={ride.driver_id} />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
+                {/* Driver Chat for driver view */}
+                {isDriverView && (
+                  <Dialog open={showDriverChat} onOpenChange={setShowDriverChat}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Chat with Passengers
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Ride Chat</DialogTitle>
+                      </DialogHeader>
+                      <RideChat rideId={ride.id} driverId={ride.driver_id} />
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Price and Booking Card */}
             <Card className="bg-white shadow-lg rounded-2xl border-0 overflow-hidden">
