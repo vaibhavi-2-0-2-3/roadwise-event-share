@@ -5,10 +5,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Heart, Check } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Heart, Check, Car } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: any;
@@ -52,6 +53,21 @@ export function EventCard({ event }: EventCardProps) {
     }
   });
 
+  // Get rides count for this event
+  const { data: ridesCount } = useQuery({
+    queryKey: ['event-rides-count', event.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('rides')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', event.id)
+        .eq('status', 'active');
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
   // Join/Leave event mutation
   const joinEventMutation = useMutation({
     mutationFn: async () => {
@@ -81,6 +97,11 @@ export function EventCard({ event }: EventCardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event-participant', event.id, user?.id] });
       queryClient.invalidateQueries({ queryKey: ['event-participants-count', event.id] });
+      toast.success(isGoing ? 'No longer interested' : 'Marked as interested!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update interest');
+      console.error('Error updating event participation:', error);
     }
   });
 
@@ -168,16 +189,32 @@ export function EventCard({ event }: EventCardProps) {
                 </div>
               </div>
               
-              <div className="flex items-center text-gray-600 dark:text-gray-400">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
-                  <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center text-gray-600 dark:text-gray-400">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
+                    <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {participantCount || 0} interested
+                    </p>
+                    <p className="text-xs text-gray-500">Participants</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {participantCount || 0} going
-                  </p>
-                  <p className="text-xs text-gray-500">Participants</p>
-                </div>
+                
+                {ridesCount !== undefined && ridesCount > 0 && (
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg mr-3">
+                      <Car className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {ridesCount} rides
+                      </p>
+                      <p className="text-xs text-gray-500">Available</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -204,12 +241,12 @@ export function EventCard({ event }: EventCardProps) {
                   ) : isGoing ? (
                     <>
                       <Check className="h-4 w-4 mr-1" />
-                      Going
+                      Interested
                     </>
                   ) : (
                     <>
                       <Heart className="h-4 w-4 mr-1" />
-                      I'm Going
+                      I'm Interested
                     </>
                   )}
                 </Button>
