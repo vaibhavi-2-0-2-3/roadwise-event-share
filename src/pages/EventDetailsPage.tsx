@@ -1,19 +1,22 @@
+
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, MapPin, Users, ArrowLeft, Car, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowLeft, Car, Clock, Heart, Check, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { toast } from 'sonner';
 
 export default function EventDetailsPage() {
   const { eventId } = useParams();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showCreateRide, setShowCreateRide] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
@@ -67,6 +70,68 @@ export default function EventDetailsPage() {
     },
     enabled: !!eventId
   });
+
+  const { data: isParticipant } = useQuery({
+    queryKey: ['event-participant', eventId, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user && !!eventId
+  });
+
+  const joinEventMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      if (isParticipant) {
+        // Leave event
+        const { error } = await supabase
+          .from('event_participants')
+          .delete()
+          .eq('event_id', eventId)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        // Join event
+        const { error } = await supabase
+          .from('event_participants')
+          .insert({
+            event_id: eventId,
+            user_id: user.id
+          });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-participant', eventId, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
+      toast.success(isParticipant ? 'No longer interested' : 'Marked as interested!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update interest');
+      console.error('Error updating event participation:', error);
+    }
+  });
+
+  const handleJoinEvent = () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    joinEventMutation.mutate();
+  };
 
   const handleOfferRide = () => {
     if (!user) {
@@ -123,6 +188,7 @@ export default function EventDetailsPage() {
   }
 
   const status = getEventStatus(event.event_date);
+  const isUpcoming = new Date(event.event_date) > new Date();
 
   return (
     <>
@@ -147,6 +213,10 @@ export default function EventDetailsPage() {
                 <Badge className={`${status.color} text-white`}>
                   {status.label}
                 </Badge>
+                <div className="flex items-center gap-1 text-sm">
+                  <Users className="h-4 w-4" />
+                  <span>{participants?.length || 0} interested</span>
+                </div>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">{event.title}</h1>
               <div className="flex flex-wrap items-center gap-4 text-sm">
@@ -165,14 +235,43 @@ export default function EventDetailsPage() {
                   <MapPin className="h-4 w-4" />
                   {event.location}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  {participants?.length || 0} attending
-                </div>
               </div>
             </div>
           </div>
         </Card>
+
+        {/* Action Buttons */}
+        {isUpcoming && (
+          <div className="flex flex-wrap gap-3 mb-8">
+            <Button 
+              onClick={handleJoinEvent}
+              disabled={joinEventMutation.isPending}
+              className={`${
+                isParticipant 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+              }`}
+            >
+              {joinEventMutation.isPending ? (
+                'Loading...'
+              ) : isParticipant ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Interested
+                </>
+              ) : (
+                <>
+                  <Heart className="h-4 w-4 mr-2" />
+                  I'm Interested
+                </>
+              )}
+            </Button>
+            <Button onClick={handleOfferRide} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Offer a Ride
+            </Button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -203,11 +302,14 @@ export default function EventDetailsPage() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Car className="h-5 w-5 text-blue-500" />
-                    Available Rides to This Event
+                    Rides to This Event ({rides?.length || 0})
                   </div>
-                  <Button onClick={handleOfferRide} size="sm">
-                    Offer Ride
-                  </Button>
+                  {isUpcoming && (
+                    <Button onClick={handleOfferRide} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Offer Ride
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -248,7 +350,7 @@ export default function EventDetailsPage() {
                             <div className="text-right">
                               {ride.price_per_seat > 0 && (
                                 <p className="font-semibold text-green-600 mb-2">
-                                  ${ride.price_per_seat}/seat
+                                  ₹{ride.price_per_seat}/seat
                                 </p>
                               )}
                               <Link to={`/rides/${ride.id}`}>
@@ -267,7 +369,12 @@ export default function EventDetailsPage() {
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
                       Be the first to offer a ride to this event!
                     </p>
-                    <Button onClick={handleOfferRide}>Offer a Ride</Button>
+                    {isUpcoming && (
+                      <Button onClick={handleOfferRide}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Offer a Ride
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -319,7 +426,7 @@ export default function EventDetailsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-purple-500" />
-                  Attendees ({participants?.length || 0})
+                  People Interested ({participants?.length || 0})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -336,14 +443,14 @@ export default function EventDetailsPage() {
                         <div>
                           <p className="font-medium text-sm">{participant.profiles?.name}</p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Joined {new Date(participant.joined_at).toLocaleDateString()}
+                            Interested since {new Date(participant.joined_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                     ))}
                     {participants.length > 8 && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 text-center pt-2">
-                        +{participants.length - 8} more attendees
+                        +{participants.length - 8} more interested
                       </p>
                     )}
                   </div>
@@ -351,7 +458,7 @@ export default function EventDetailsPage() {
                   <div className="text-center py-6">
                     <Users className="h-12 w-12 mx-auto text-gray-400 mb-2" />
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      No attendees yet
+                      No one has shown interest yet
                     </p>
                   </div>
                 )}

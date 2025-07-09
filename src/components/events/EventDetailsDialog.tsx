@@ -1,12 +1,12 @@
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, MapPin, Users, MessageCircle, Plus, Clock, Car, MessageSquare } from 'lucide-react';
+import { Calendar, MapPin, Users, MessageCircle, Plus, Clock, Car, MessageSquare, Heart, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +15,7 @@ import { CreateRideDialog } from '@/components/rides/CreateRideDialog';
 import { EventChat } from './EventChat';
 import { EventWall } from './EventWall';
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { toast } from 'sonner';
 
 interface EventDetailsDialogProps {
   event: Tables<'events'>;
@@ -24,6 +25,7 @@ interface EventDetailsDialogProps {
 
 export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDialogProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showCreateRide, setShowCreateRide] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
@@ -68,22 +70,62 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
     enabled: !!user && open
   });
 
-  const handleJoinEvent = async () => {
+  const { data: participantCount } = useQuery({
+    queryKey: ['event-participants-count', event.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('event_participants')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', event.id);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: open
+  });
+
+  const joinEventMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      if (isParticipant) {
+        // Leave event
+        const { error } = await supabase
+          .from('event_participants')
+          .delete()
+          .eq('event_id', event.id)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        // Join event
+        const { error } = await supabase
+          .from('event_participants')
+          .insert({
+            event_id: event.id,
+            user_id: user.id
+          });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-participant', event.id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['event-participants-count', event.id] });
+      toast.success(isParticipant ? 'Left event successfully!' : 'Joined event successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update event participation');
+      console.error('Error updating event participation:', error);
+    }
+  });
+
+  const handleJoinEvent = () => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
-
-    const { error } = await supabase
-      .from('event_participants')
-      .insert({
-        event_id: event.id,
-        user_id: user.id
-      });
-
-    if (error) {
-      console.error('Error joining event:', error);
-    }
+    joinEventMutation.mutate();
   };
 
   const handleOfferRide = () => {
@@ -117,9 +159,15 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <DialogTitle className="text-2xl font-bold mb-2">{event.title}</DialogTitle>
-                <Badge className={`${status.color} text-white mb-2`}>
-                  {status.label}
-                </Badge>
+                <div className="flex items-center gap-3 mb-4">
+                  <Badge className={`${status.color} text-white`}>
+                    {status.label}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <Users className="h-4 w-4" />
+                    <span>{participantCount || 0} interested</span>
+                  </div>
+                </div>
               </div>
             </div>
           </DialogHeader>
@@ -181,12 +229,30 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
-              {!isParticipant && (
-                <Button onClick={handleJoinEvent} size="lg" className="flex-1 md:flex-none">
-                  <Users className="h-4 w-4 mr-2" />
-                  Join Event
-                </Button>
-              )}
+              <Button 
+                onClick={handleJoinEvent} 
+                disabled={joinEventMutation.isPending}
+                size="lg" 
+                className={`flex-1 md:flex-none ${
+                  isParticipant 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                }`}
+              >
+                {joinEventMutation.isPending ? (
+                  'Loading...'
+                ) : isParticipant ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Interested
+                  </>
+                ) : (
+                  <>
+                    <Heart className="h-4 w-4 mr-2" />
+                    I'm Interested
+                  </>
+                )}
+              </Button>
               <Button onClick={handleOfferRide} variant="outline" size="lg" className="flex-1 md:flex-none">
                 <Plus className="h-4 w-4 mr-2" />
                 Offer a Ride
@@ -211,6 +277,14 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
               </TabsList>
               
               <TabsContent value="rides" className="space-y-4 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Rides to This Event</h3>
+                  <Button onClick={handleOfferRide} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Offer Ride
+                  </Button>
+                </div>
+                
                 {ridesLoading ? (
                   <div className="grid gap-4">
                     {[1, 2, 3].map((i) => (
@@ -254,7 +328,7 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                     <MessageCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium mb-2">Join the conversation</h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      {user ? 'Join this event to participate in the group chat' : 'Sign in and join this event to chat with other attendees'}
+                      {user ? 'Show interest in this event to participate in the group chat' : 'Sign in and show interest in this event to chat with other attendees'}
                     </p>
                     {!user ? (
                       <Button onClick={() => setShowAuthDialog(true)}>
@@ -262,8 +336,8 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                       </Button>
                     ) : (
                       <Button onClick={handleJoinEvent}>
-                        <Users className="h-4 w-4 mr-2" />
-                        Join Event
+                        <Heart className="h-4 w-4 mr-2" />
+                        I'm Interested
                       </Button>
                     )}
                   </div>
@@ -280,6 +354,7 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
         eventId={event.id}
         eventTitle={event.title}
         eventLocation={event.location}
+        eventDate={event.event_date}
       />
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />

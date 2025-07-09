@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Calendar, MapPin, Users, Plus, Clock } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Plus, Clock, Car } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { AnimatedBanner } from '@/components/shared/AnimatedBanner';
 
@@ -28,6 +28,50 @@ export default function EventsPage() {
     }
   });
 
+  // Get participant counts for all events
+  const { data: eventParticipants } = useQuery({
+    queryKey: ['all-event-participants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('event_id');
+      
+      if (error) throw error;
+      
+      // Count participants per event
+      const counts: { [key: string]: number } = {};
+      data.forEach(p => {
+        counts[p.event_id] = (counts[p.event_id] || 0) + 1;
+      });
+      
+      return counts;
+    }
+  });
+
+  // Get ride counts for all events
+  const { data: eventRides } = useQuery({
+    queryKey: ['all-event-rides'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rides')
+        .select('event_id')
+        .eq('status', 'active')
+        .not('event_id', 'is', null);
+      
+      if (error) throw error;
+      
+      // Count rides per event
+      const counts: { [key: string]: number } = {};
+      data.forEach(r => {
+        if (r.event_id) {
+          counts[r.event_id] = (counts[r.event_id] || 0) + 1;
+        }
+      });
+      
+      return counts;
+    }
+  });
+
   const getEventStatus = (eventDate: string) => {
     const now = new Date();
     const event = new Date(eventDate);
@@ -43,7 +87,6 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <AnimatedBanner
         title="Discover Events in Goa"
         subtitle="Find amazing events and connect with fellow travelers for shared rides"
@@ -63,6 +106,16 @@ export default function EventsPage() {
       </AnimatedBanner>
 
       <div className="container mx-auto px-4 py-12">
+        {/* Filter Options */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-gray-900">Events</h2>
+            <Badge variant="outline" className="text-blue-600 border-blue-200">
+              {events?.length || 0} events found
+            </Badge>
+          </div>
+        </div>
+
         {/* Events Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -81,6 +134,9 @@ export default function EventsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((event) => {
               const status = getEventStatus(event.event_date);
+              const participantCount = eventParticipants?.[event.id] || 0;
+              const rideCount = eventRides?.[event.id] || 0;
+              
               return (
                 <Card key={event.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group shadow-md border-0 bg-white rounded-2xl">
                   <div className="aspect-[4/3] relative overflow-hidden">
@@ -127,10 +183,22 @@ export default function EventsPage() {
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-sm text-green-600">89 attending</span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-sm text-green-600">
+                            {participantCount} interested
+                          </span>
+                        </div>
+                        {rideCount > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Car className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium text-sm text-blue-600">
+                              {rideCount} rides
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <Link to={`/events/${event.id}`}>
                         <Button size="sm" className="bg-blue-600 hover:bg-blue-700 px-6">

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -44,10 +45,12 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('🚗 Ride request sent! The driver will be notified.');
+      const rideType = ride.event_id ? 'event ride' : 'ride';
+      toast.success(`🚗 ${rideType} request sent! The driver will be notified.`);
       queryClient.invalidateQueries({ queryKey: ['rides'] });
       queryClient.invalidateQueries({ queryKey: ['user-booking'] });
       queryClient.invalidateQueries({ queryKey: ['ride-details'] });
+      queryClient.invalidateQueries({ queryKey: ['event-rides'] });
     },
     onError: (error) => {
       toast.error('Failed to send ride request');
@@ -62,15 +65,8 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
 
   const handleRazorpayPayment = async () => {
     const amount = Number(ride?.price_per_seat || 0) * Number(existingBooking?.seats_booked || 1);
-
-
-
-    // const amount = ride.price_per_seat * existingBooking.seats_booked;
-    // const name = user?.user_metadata?.full_name || user?.email || 'Passenger';
-
     const rawName = user?.user_metadata?.full_name || user?.email || 'Passenger';
     const name = typeof rawName === 'string' && rawName.trim() !== '' ? rawName.trim().substring(0, 50) : 'Passenger';
-
 
     try {
       const res = await fetch('http://localhost:3000/api/payment/create-order', {
@@ -87,7 +83,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
         amount: order.amount,
         currency: 'INR',
         name: 'RoadWise',
-        description: 'Ride Fare Payment',
+        description: ride.event_id ? 'Event Ride Fare Payment' : 'Ride Fare Payment',
         order_id: order.id,
         handler: async function (response: any) {
           const { error } = await supabase
@@ -103,19 +99,19 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
             queryClient.invalidateQueries({ queryKey: ['user-booking'] });
             queryClient.invalidateQueries({ queryKey: ['ride-details'] });
           } else {
-            toast.error('❌ Failed to update Supabase');
+            toast.error('❌ Failed to update payment status');
           }
         },
         prefill: {
-          // name,
-          name: 'Test User', // ✅ keep simple for test
+          name: 'Test User',
           email: user?.email || 'test@example.com',
           contact: '0000000000'
         },
         notes: {
-          ride_id: ride.id, // Optional but helps in backend debugging
+          ride_id: ride.id,
+          event_id: ride.event_id || null,
         },
-        theme: { color: '#000000' },
+        theme: { color: '#3B82F6' },
       };
 
       const razor = new window.Razorpay(options);
@@ -142,10 +138,12 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
 
   if (isDriverView) {
     return (
-      <div className="p-3 border border-dashed border-black bg-white text-black rounded-none bg-[#ff4da3]">
+      <div className="p-3 border border-dashed border-blue-200 bg-blue-50 text-blue-800 rounded-lg">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-black" />
-          <span className="font-medium ">This is your ride</span>
+          <Users className="h-4 w-4" />
+          <span className="font-medium">
+            This is your {ride.event_id ? 'event ride' : 'ride'}
+          </span>
         </div>
       </div>
     );
@@ -154,7 +152,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
   if (existingBooking) {
     return (
       <div className="space-y-4">
-        <div className="p-3 border border-dashed border-black bg-white text-black rounded-none">
+        <div className="p-3 border border-dashed border-blue-200 bg-blue-50 text-blue-800 rounded-lg">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold">
               {existingBooking.status === 'pending'
@@ -167,9 +165,9 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
 
           {existingBooking.status === 'confirmed' && existingBooking.payment_status !== 'paid' && (
             <div className="space-y-2 mt-2">
-              <p className="text-xs text-black">🚧 Payment pending</p>
+              <p className="text-xs text-blue-700">🚧 Payment pending</p>
               <Button
-                className="w-full bg-blue-600 text-white rounded-none hover:bg-white hover:text-blue-600 hover:border hover:border-blue-600 transition"
+                className="w-full bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 onClick={handleRazorpayPayment}
               >
                 Pay Now ₹{ride.price_per_seat * existingBooking.seats_booked}
@@ -184,7 +182,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
+              className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 rounded-lg"
               onClick={handleMessageClick}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -193,7 +191,9 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Chat with Driver</DialogTitle>
+              <DialogTitle>
+                Chat with Driver{ride.event_id ? ' - Event Ride' : ''}
+              </DialogTitle>
             </DialogHeader>
             {chatEnabled && (
               <RideChat rideId={ride.id} driverId={ride.driver_id} />
@@ -212,7 +212,7 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
           <select
             value={seatsToBook}
             onChange={(e) => setSeatsToBook(Number(e.target.value))}
-            className="px-2 py-1 border border-black rounded-none bg-white text-black"
+            className="px-2 py-1 border border-blue-200 rounded-lg bg-white text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {Array.from({ length: Math.min(ride.available_seats, 4) }, (_, i) => (
               <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -223,9 +223,9 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
         <Button
           onClick={handleRequestRide}
           disabled={requestRideMutation.isPending}
-          className="w-full bg-black text-white rounded-none py-3 text-sm hover:bg-white hover:text-black hover:border hover:border-black transition"
+          className="w-full bg-blue-600 text-white rounded-lg py-3 text-sm hover:bg-blue-700 transition"
         >
-          {requestRideMutation.isPending ? 'Sending Request...' : 'Request Ride'}
+          {requestRideMutation.isPending ? 'Sending Request...' : `Request ${ride.event_id ? 'Event Ride' : 'Ride'}`}
           {ride.price_per_seat > 0 && (
             <span className="ml-2">₹{(ride.price_per_seat * seatsToBook).toFixed(2)}</span>
           )}
@@ -235,9 +235,9 @@ export function RideRequestButton({ ride, existingBooking, onShowAuth }: RideReq
   }
 
   return (
-    <div className="p-3 border border-dashed border-black text-center text-black rounded-none bg-white">
+    <div className="p-3 border border-dashed border-gray-200 text-center text-gray-600 rounded-lg bg-gray-50">
       <p className="text-sm">
-        {isExpired ? 'This ride has expired' : 'No seats available'}
+        {isExpired ? `This ${ride.event_id ? 'event ride' : 'ride'} has expired` : 'No seats available'}
       </p>
     </div>
   );
